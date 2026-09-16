@@ -24,7 +24,7 @@ export async function connectMongoDB() {
   }
 
   if (!cache.promise) {
-    cache.promise = mongoose.connect(mongoUri).catch((error) => {
+    cache.promise = mongoose.connect(mongoUri, { autoIndex: false, autoCreate: false }).catch((error) => {
       cache.promise = null;
       throw error;
     });
