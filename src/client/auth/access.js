@@ -1,4 +1,14 @@
-export const ERP_ROLES = ["admin", "manager", "accountant", "sales_manager", "sales_rep", "warehouse_staff", "production_staff", "inventory_admin", "staff"];
+export const ERP_ROLES = [
+  "admin",
+  "manager",
+  "accountant",
+  "sales_manager",
+  "sales_rep",
+  "warehouse_staff",
+  "production_staff",
+  "inventory_admin",
+  "staff",
+];
 export const PRICE_CHECKER_ROLES = ["customer", "admin", "manager", "inventory_admin", "staff"];
 
 export function getLoginDestination(user) {

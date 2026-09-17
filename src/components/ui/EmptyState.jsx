@@ -1,2 +1,18 @@
 import { Package } from "lucide-react";
-export default function EmptyState({ icon: Icon = Package, title = "No data", description, action }) { return <div className="flex flex-col items-center justify-center px-4 py-16 text-center"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100"><Icon size={28} className="text-gray-400"/></div><h3 className="text-lg font-semibold text-gray-900">{title}</h3>{description && <p className="mt-1 max-w-md text-sm text-gray-500">{description}</p>}{action && <div className="mt-6">{action}</div>}</div>; }
+export default function EmptyState({
+  icon: Icon = Package,
+  title = "No data",
+  description,
+  action,
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+        <Icon size={28} className="text-gray-400" />
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      {description && <p className="mt-1 max-w-md text-sm text-gray-500">{description}</p>}
+      {action && <div className="mt-6">{action}</div>}
+    </div>
+  );
+}

@@ -18,12 +18,18 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     if (persist.hasHydrated()) setHydrated(true);
     return persist.onFinishHydration(() => setHydrated(true));
   }, []);
-  const decision = hydrated ? getProtectedRouteDecision({ isAuthenticated, user, allowedRoles }) : "pending";
+  const decision = hydrated
+    ? getProtectedRouteDecision({ isAuthenticated, user, allowedRoles })
+    : "pending";
 
   useEffect(() => {
     if (decision === "login") router.replace(`/login?from=${encodeURIComponent(pathname)}`);
     if (decision === "unauthorized") {
-      console.warn("Access Denied: User role not authorized", { userRole: user?.role, allowedRoles, path: pathname });
+      console.warn("Access Denied: User role not authorized", {
+        userRole: user?.role,
+        allowedRoles,
+        path: pathname,
+      });
       router.replace("/unauthorized");
     }
   }, [decision, router, pathname, user?.role, allowedRoles]);

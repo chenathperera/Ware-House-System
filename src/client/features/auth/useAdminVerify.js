@@ -1,3 +1,26 @@
 "use client";
 import { useCallback, useState } from "react";
-export const useAdminVerify=()=>{const[isVerifyModalOpen,setOpen]=useState(false);const[onVerifySuccess,setSuccess]=useState(null);const[verifyConfig,setConfig]=useState({title:"",message:""});const requestAdminVerify=useCallback((callback,config={})=>{setSuccess(()=>callback);setConfig({title:config.title||"Admin Verification Required",message:config.message||"This action requires administrative privileges. Please verify your credentials."});setOpen(true);},[]);const handleVerified=(data)=>{if(onVerifySuccess)onVerifySuccess(data);setOpen(false);};const closeVerifyModal=()=>{setOpen(false);setSuccess(null);};return{isVerifyModalOpen,requestAdminVerify,handleVerified,closeVerifyModal,verifyConfig};};
+export const useAdminVerify = () => {
+  const [isVerifyModalOpen, setOpen] = useState(false);
+  const [onVerifySuccess, setSuccess] = useState(null);
+  const [verifyConfig, setConfig] = useState({ title: "", message: "" });
+  const requestAdminVerify = useCallback((callback, config = {}) => {
+    setSuccess(() => callback);
+    setConfig({
+      title: config.title || "Admin Verification Required",
+      message:
+        config.message ||
+        "This action requires administrative privileges. Please verify your credentials.",
+    });
+    setOpen(true);
+  }, []);
+  const handleVerified = (data) => {
+    if (onVerifySuccess) onVerifySuccess(data);
+    setOpen(false);
+  };
+  const closeVerifyModal = () => {
+    setOpen(false);
+    setSuccess(null);
+  };
+  return { isVerifyModalOpen, requestAdminVerify, handleVerified, closeVerifyModal, verifyConfig };
+};

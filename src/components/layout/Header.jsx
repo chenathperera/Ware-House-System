@@ -4,4 +4,65 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "../../client/store/authStore.js";
 import { authApi } from "../../client/features/auth/authApi.js";
-export default function Header({ onToggleSidebar }) { const router = useRouter(); const { user, logout } = useAuthStore(); const handleLogout = async () => { try { await authApi.logout(); } catch {} logout(); toast.success("Logged out successfully"); router.push("/login"); }; const labels = { admin:"Administrator", manager:"Manager", accountant:"Accountant", sales_manager:"Sales Manager", sales_rep:"Sales Rep", warehouse_staff:"Warehouse Staff", production_staff:"Production Staff", staff:"Staff" }; return <header className="flex h-16 flex-shrink-0 items-center justify-between border-b border-gray-50 bg-white px-6"><div className="flex items-center gap-3"><button onClick={onToggleSidebar} className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-50 hover:text-gray-900" aria-label="Toggle sidebar"><Menu size={20}/></button><div className="hidden md:block"><p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Workspace</p><h1 className="text-sm font-bold text-gray-900">Main Branch</h1></div></div><div className="flex items-center gap-4"><div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-1.5"><button onClick={() => router.push("/profile")} className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white shadow-sm"><UserIcon className="h-4 w-4 text-indigo-600"/></button><div className="hidden text-sm sm:block"><p className="leading-none font-bold text-gray-900">{user?.fullName}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-tighter text-gray-400">{labels[user?.role] || "User"}</p></div></div><button onClick={handleLogout} className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-100"><LogOut size={16}/><span>Logout</span></button></div></header>; }
+export default function Header({ onToggleSidebar }) {
+  const router = useRouter();
+  const { user, logout } = useAuthStore();
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } catch {}
+    logout();
+    toast.success("Logged out successfully");
+    router.push("/login");
+  };
+  const labels = {
+    admin: "Administrator",
+    manager: "Manager",
+    accountant: "Accountant",
+    sales_manager: "Sales Manager",
+    sales_rep: "Sales Rep",
+    warehouse_staff: "Warehouse Staff",
+    production_staff: "Production Staff",
+    staff: "Staff",
+  };
+  return (
+    <header className="flex h-16 flex-shrink-0 items-center justify-between border-b border-gray-50 bg-white px-6">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onToggleSidebar}
+          className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-50 hover:text-gray-900"
+          aria-label="Toggle sidebar"
+        >
+          <Menu size={20} />
+        </button>
+        <div className="hidden md:block">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Workspace</p>
+          <h1 className="text-sm font-bold text-gray-900">Main Branch</h1>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-1.5">
+          <button
+            onClick={() => router.push("/profile")}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white shadow-sm"
+          >
+            <UserIcon className="h-4 w-4 text-indigo-600" />
+          </button>
+          <div className="hidden text-sm sm:block">
+            <p className="leading-none font-bold text-gray-900">{user?.fullName}</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-tighter text-gray-400">
+              {labels[user?.role] || "User"}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-100"
+        >
+          <LogOut size={16} />
+          <span>Logout</span>
+        </button>
+      </div>
+    </header>
+  );
+}

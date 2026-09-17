@@ -7,4 +7,77 @@ import Button from "../ui/Button.jsx";
 import Input from "../ui/Input.jsx";
 import api from "../../client/api/axios.js";
 import { useAuthStore } from "../../client/store/authStore.js";
-export default function AdminVerificationModal({isOpen,onClose,onVerified,title="Admin Verification Required",message="This action requires administrative privileges. Please verify your credentials."}){const user=useAuthStore((state)=>state.user);const[password,setPassword]=useState("");const[adminEmail,setAdminEmail]=useState("");const[isLoading,setLoading]=useState(false);const current=user?.role==="admin";const verify=async(event)=>{event.preventDefault();if(!password)return toast.error("Password is required");if(!current&&!adminEmail)return toast.error("Admin email is required");setLoading(true);try{const response=await api.post("/auth/verify-admin",{password,adminEmail:current?undefined:adminEmail});if(response.data.success){toast.success("Verified successfully");onVerified(response.data.data);onClose();setPassword("");setAdminEmail("");}}catch(error){toast.error(error.response?.data?.message||"Verification failed");}finally{setLoading(false);}};return <Modal isOpen={isOpen} onClose={onClose} title={title}><div className="space-y-4 p-6"><div className="flex items-center gap-3 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-indigo-700"><ShieldCheck size={24}/><p className="text-sm font-medium">{message}</p></div><form onSubmit={verify} className="space-y-4">{!current&&<Input label="Admin Email" type="email" placeholder="Enter admin email" value={adminEmail} onChange={(event)=>setAdminEmail(event.target.value)} required/>}<Input label={current?"Your Password":"Admin Password"} type="password" placeholder="••••••••" value={password} onChange={(event)=>setPassword(event.target.value)} required/><div className="mt-6 flex justify-end gap-3"><Button variant="ghost" onClick={onClose} disabled={isLoading}>Cancel</Button><Button type="submit" variant="primary" loading={isLoading}>Verify & Proceed</Button></div></form></div></Modal>;}
+export default function AdminVerificationModal({
+  isOpen,
+  onClose,
+  onVerified,
+  title = "Admin Verification Required",
+  message = "This action requires administrative privileges. Please verify your credentials.",
+}) {
+  const user = useAuthStore((state) => state.user);
+  const [password, setPassword] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [isLoading, setLoading] = useState(false);
+  const current = user?.role === "admin";
+  const verify = async (event) => {
+    event.preventDefault();
+    if (!password) return toast.error("Password is required");
+    if (!current && !adminEmail) return toast.error("Admin email is required");
+    setLoading(true);
+    try {
+      const response = await api.post("/auth/verify-admin", {
+        password,
+        adminEmail: current ? undefined : adminEmail,
+      });
+      if (response.data.success) {
+        toast.success("Verified successfully");
+        onVerified(response.data.data);
+        onClose();
+        setPassword("");
+        setAdminEmail("");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+      <div className="space-y-4 p-6">
+        <div className="flex items-center gap-3 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-indigo-700">
+          <ShieldCheck size={24} />
+          <p className="text-sm font-medium">{message}</p>
+        </div>
+        <form onSubmit={verify} className="space-y-4">
+          {!current && (
+            <Input
+              label="Admin Email"
+              type="email"
+              placeholder="Enter admin email"
+              value={adminEmail}
+              onChange={(event) => setAdminEmail(event.target.value)}
+              required
+            />
+          )}
+          <Input
+            label={current ? "Your Password" : "Admin Password"}
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+          <div className="mt-6 flex justify-end gap-3">
+            <Button variant="ghost" onClick={onClose} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" loading={isLoading}>
+              Verify & Proceed
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Modal>
+  );
+}

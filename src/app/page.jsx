@@ -9,8 +9,8 @@ export default function HomePage() {
           Next.js migration foundation is active.
         </h1>
         <p className="mt-4 text-slate-600">
-          The App Router, Tailwind CSS, server-only MongoDB utility, and health
-          endpoint are ready. ERP modules have not yet been migrated.
+          The App Router, Tailwind CSS, server-only MongoDB utility, and health endpoint are ready.
+          ERP modules have not yet been migrated.
         </p>
       </section>
     </main>

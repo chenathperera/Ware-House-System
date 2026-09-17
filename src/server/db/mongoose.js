@@ -24,10 +24,12 @@ export async function connectMongoDB() {
   }
 
   if (!cache.promise) {
-    cache.promise = mongoose.connect(mongoUri, { autoIndex: false, autoCreate: false }).catch((error) => {
-      cache.promise = null;
-      throw error;
-    });
+    cache.promise = mongoose
+      .connect(mongoUri, { autoIndex: false, autoCreate: false })
+      .catch((error) => {
+        cache.promise = null;
+        throw error;
+      });
   }
 
   cache.connection = await cache.promise;

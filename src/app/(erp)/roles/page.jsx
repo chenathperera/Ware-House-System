@@ -5,5 +5,63 @@ import Card from "../../../components/ui/Card.jsx";
 import { ROLES } from "../../../client/features/users/roleConfig.js";
 import { useUsers } from "../../../client/features/users/useUsers.js";
 import ProtectedRoute from "../../../components/auth/ProtectedRoute.jsx";
-function RolesPage(){const{data}=useUsers({limit:500});const users=data?.data||[];return <><PageHeader title="Roles & Permissions" description="View the roles available in the system and what each can do"/><Card className="mb-6 border-blue-200 bg-blue-50 p-4"><p className="text-sm text-blue-900"><strong>How roles work:</strong> Each user is assigned one role. The role determines what actions they can perform. Roles are currently system-defined and cannot be customized through the UI — this keeps permissions predictable and secure. Contact your developer to add custom roles.</p></Card><div className="grid grid-cols-1 gap-4 md:grid-cols-2">{ROLES.map((role)=><Card key={role.value} className="p-5"><div className="mb-3 flex items-start justify-between"><div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-lg text-white" style={{backgroundColor:role.color}}><ShieldCheck size={20}/></div><div><h3 className="font-semibold">{role.label}</h3><p className="font-mono text-xs text-gray-500">{role.value}</p></div></div><div className="flex items-center gap-1 text-sm text-gray-600"><Users size={14}/>{users.filter((user)=>user.role===role.value&&user.isActive).length}</div></div><p className="mb-3 text-sm text-gray-700">{role.description}</p><p className="mb-1 text-xs font-semibold uppercase text-gray-500">Capabilities</p><div className="flex flex-wrap gap-1">{role.permissions.map((permission)=><span key={permission} className="rounded bg-gray-100 px-2 py-0.5 text-xs">{permission.replace(/_/g," ")}</span>)}</div></Card>)}</div></>;}
-export default function GuardedRolesPage(){return <ProtectedRoute allowedRoles={["admin"]}><RolesPage/></ProtectedRoute>;}
+function RolesPage() {
+  const { data } = useUsers({ limit: 500 });
+  const users = data?.data || [];
+  return (
+    <>
+      <PageHeader
+        title="Roles & Permissions"
+        description="View the roles available in the system and what each can do"
+      />
+      <Card className="mb-6 border-blue-200 bg-blue-50 p-4">
+        <p className="text-sm text-blue-900">
+          <strong>How roles work:</strong> Each user is assigned one role. The role determines what
+          actions they can perform. Roles are currently system-defined and cannot be customized
+          through the UI — this keeps permissions predictable and secure. Contact your developer to
+          add custom roles.
+        </p>
+      </Card>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {ROLES.map((role) => (
+          <Card key={role.value} className="p-5">
+            <div className="mb-3 flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-white"
+                  style={{ backgroundColor: role.color }}
+                >
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{role.label}</h3>
+                  <p className="font-mono text-xs text-gray-500">{role.value}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <Users size={14} />
+                {users.filter((user) => user.role === role.value && user.isActive).length}
+              </div>
+            </div>
+            <p className="mb-3 text-sm text-gray-700">{role.description}</p>
+            <p className="mb-1 text-xs font-semibold uppercase text-gray-500">Capabilities</p>
+            <div className="flex flex-wrap gap-1">
+              {role.permissions.map((permission) => (
+                <span key={permission} className="rounded bg-gray-100 px-2 py-0.5 text-xs">
+                  {permission.replace(/_/g, " ")}
+                </span>
+              ))}
+            </div>
+          </Card>
+        ))}
+      </div>
+    </>
+  );
+}
+export default function GuardedRolesPage() {
+  return (
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <RolesPage />
+    </ProtectedRoute>
+  );
+}

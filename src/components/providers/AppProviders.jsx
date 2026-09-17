@@ -21,5 +21,10 @@ function createQueryClient() {
 
 export default function AppProviders({ children }) {
   const [queryClient] = useState(createQueryClient);
-  return <QueryClientProvider client={queryClient}><Toaster position="top-right" />{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Toaster position="top-right" />
+      {children}
+    </QueryClientProvider>
+  );
 }
