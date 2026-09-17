@@ -15,6 +15,7 @@
     "test:settings": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/settings.test.mjs",
     "test:settings": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/settings.test.mjs",
     "test:warehouses": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/warehouses.test.mjs",
+    "test:customer-groups": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/customer-groups.test.mjs",
     "test:frontend": "node --test tests/frontend-auth.test.mjs"
   },
   "dependencies": {
