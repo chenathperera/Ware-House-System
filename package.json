@@ -12,6 +12,9 @@
     "test:categories": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/categories.test.mjs",
     "test:brands": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/brands.test.mjs",
     "test:uoms": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/uoms.test.mjs",
+    "test:settings": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/settings.test.mjs",
+    "test:settings": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/settings.test.mjs",
+    "test:warehouses": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/warehouses.test.mjs",
     "test:frontend": "node --test tests/frontend-auth.test.mjs"
   },
   "dependencies": {

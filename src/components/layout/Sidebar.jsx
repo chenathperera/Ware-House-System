@@ -17,6 +17,7 @@ import {
   Plus,
   Receipt,
   ShoppingBag,
+  Settings,
   ShoppingCart,
   Users as UsersIcon,
 } from "lucide-react";
@@ -116,6 +117,7 @@ const menuItems = [
     ],
   },
   { label: "Analytics", id: "analytics", icon: BarChart3, path: "/reports" },
+  { label: "Settings", id: "settings", icon: Settings, path: "/settings" },
 ];
 export default function Sidebar({ userRole, isOpen, onClose }) {
   const pathname = usePathname();
