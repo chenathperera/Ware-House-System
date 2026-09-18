@@ -66,6 +66,67 @@ The current tree also has uncommitted Product validator work. It is **not** evid
 | [ORIGINAL-DEFECT-TO-PRESERVE] | `frontend/src/features/customers/QuickCreateCustomerModal.jsx`  | Quick Create submits `paymentTerms.type: 'cash'`, `primaryAddress`, top-level `creditLimit`, and `legalName`; this differs from the full Customer form/API validator contract. Preserve the original lightweight payload rather than changing the backend or silently normalizing it. |
 | [ORIGINAL-DEFECT-TO-PRESERVE] | `frontend/src/features/suppliers/QuickCreateSupplierModal.jsx`  | Quick Create submits `paymentTerms.type: 'cash'`, `primaryAddress`, and `legalName`; this differs from the full Supplier form/API validator contract. Preserve the original lightweight payload rather than changing the backend or silently normalizing it. |
 
+## Product Frontend Recovery Map
+
+**Audit-only checkpoint 3A, 2026-09-18.** Original authority: `frontend/src/pages/ProductsPage.jsx`, `features/products/ProductFormModal.jsx`, `QuickCreateProductModal.jsx`, `productSchemas.js`, `productsApi.js`, `useProducts.js`, with `pages/WholesalePricesPage.jsx` and `PriceCheckerPage.jsx` inspected only for Product dependencies. No Product implementation files were changed.
+
+### Products page
+
+| Behavior | Original | Current Next | Status |
+| --- | --- | --- | --- |
+| Header/actions | `Products`, `Manage your product catalog`; Add Product only for `admin`/`manager`. | Same heading/create-role intent, but simplified modal. | [DIFFERENT] |
+| Query/filter state | `{search:'',categoryId:'',status:'',page:1,limit:10}`; product list has placeholder previous data; categories query supplies `name` filters. | Same basic filters but client Product reference API/hooks are incomplete. | [DIFFERENT] |
+| Table | Code; name + optional `SKU:`; populated category; populated brand; Purchase Price from `purchasePrice || costs.standardCost`; LKR two-decimal Sell Price; Call Price plus `callPriceUpdatedAt`; computed profit `((basePrice-standardCost)/standardCost*100).toFixed(1)`; status; actions. | Missing purchase/call/profit presentation and full action behavior. | [MISSING] |
+| Actions | Every action is visible only to `admin`/`manager`: View, Edit, Delete. Delete is a soft-delete confirm with explicit restore-by-admin text. | Edit/delete only and simplified confirmation. | [DIFFERENT] |
+| States | `Loading products...`; filtered empty explanation; add action absent only when search is nonempty; `isFetching` translucent overlay after initial load. | Basic loading/empty only. | [DIFFERENT] |
+
+**View correction:** the original has a View icon/action, but `ProductFormModal` accepts no view prop and is not read-only. It therefore opens the editable form. Preserve this observable original quirk rather than designing a details mode.
+
+### Form structure and navigation
+
+Tabs in declared order: **Basic Info**, **Variations**, **Combo Items**, **Pricing & Tax**, **Wholesale Tiers**, **Stock & Packaging**, **Sales Config**. Variations tab renders only for `productNature === 'variable'`; Combo only for `'combo'`. Previous chooses the previous id in the fixed tab array. Next also uses that fixed array, so for single products it can navigate through hidden `variations`/`combo` ids before Pricing; this is an original navigation quirk. Create/Update is only rendered on Sales Config. Cancel closes unless mutation pending. Opening resets active tab to Basic Info; create defaults include trading/active/taxable-18/sellable/backorder/quantity/pricing/nature/arrays as in source. Schema validation occurs on final submit, not tab navigation.
+
+### Field inventory and payload map
+
+| Tab | Original rendered fields/state | Defaults/hydration/payload |
+| --- | --- | --- |
+| Basic Info | Product Name `name` required; Product Nature `productNature`; Short Name; Barcode; SKU; Type (`trading/manufactured/service/bundle`); Category required; Brand; Product Type; UOM required; Status; `canBeSold`, `canBePurchased`, `canBeManufactured`; Description; Internal Notes (`notes`). | Hydrates direct values/references; optional strings become `undefined` in payload; product flags remain top-level. Category option labels are `name (code)`, brand labels name, UOM uses `symbol`. |
+| Pricing & Tax | Buying Price `buyingPrice`, Profit %, Selling Price `basePrice` required, MRP, Call Price; call-price timestamp display on edit. | Standard cost hydrates from `costs.standardCost`; payload sets top-level `purchasePrice` and merges existing `costs` with `standardCost`. Formula: changing buy or profit sets `basePrice = round2(buy * (1 + profit/100))`; changing sell sets `profit = round2((sell-buy)/buy*100)` only if buy > 0. |
+| Stock & Packaging | Minimum, Reorder, Maximum levels; Units per Carton; Cartons per Pallet. | Payload nests `stockLevels` and `packaging`, all numeric fallback 0. This is Product configuration only—not Stock movements, transfer, adjustment, opening stock, or a Stock module. |
+| Sales Config | `sellable`, `allowBackorder`, Minimum Order Quantity. | Payload nests `salesConfig`; defaults true/false/1. |
+
+**Tax correction:** no tax controls are rendered despite schema/default/hydration fields `taxable`, `taxRate`, `hsCode`. Original submit always overwrites tax with `{ taxable: false, taxRate: 0 }` and omits `hsCode`. This must be preserved unless a later source-backed scope explicitly authorizes a change.
+
+### Variations and combos
+
+For a variable product, Add Variation appends `{name:'', sku:'', price:watch(basePrice)||0, purchasePrice:watch(buyingPrice)||0, stock:0}`. Each removable row renders Name required, SKU, Barcode, Purchase Price, Sell Price, Initial Stock. Schema contains optional `attributeName`/`attributeValue`, but the original UI never renders them. Submit sends all variations only when nature is variable, otherwise `[]`.
+
+For a combo, Add Item appends `{productId:'', quantity:1, priceContribution:0}`. Each row selects from `useProducts({limit:1000,status:'active'})`, requires product and quantity, exposes Price Contribution, and removes independently. Edit maps populated product ids to raw ids. Submit sends combo items only when nature is combo, otherwise `[]`.
+
+### Tiers, standalone wholesale workflow, and product-dependent pages
+
+The Product form always exposes Wholesale Tiers. Add defaults to `{tierName:watch(name)||'',minQuantity:1,maxQuantity:null,price:0}`. Rows edit name/min/max/price and display `round2((tierPrice-buyingPrice)/buyingPrice*100)` (or `0` if cost is zero); no automatic tier-price writeback. Payload sends `tierPricing || []`.
+
+`WholesalePricesPage` is a separate Product update workflow: search uses `useProducts({search})`; one product can be edited at a time; Save sends **only** `{tierPricing: tempTiers}` through `useUpdateProduct`; cancel discards local tiers. New tiers default name to product name, min 1, max null, price 0. It uses the same standard-cost profit formula. It is not merged into Product form implementation work.
+
+`PriceCheckerPage` only consumes Product list data: public-style product search (`limit:40`), selected-product base price, description, tiers, and MRP. Its implementation is expressly outside Product recovery scope.
+
+### Quick Create Product
+
+Used as a PO/SO lightweight modal (default type `raw_material` or `finished_good`). It renders name required, type, UOM, category, selling price, purchase cost, and sell/purchase checkboxes. Defaults: empty name/category, UOM `pcs`, prices 0, purchased true, sold unless raw material. Type change forces sold false only for raw material. It requires only name, then creates a payload with `costs.lastPurchaseCost` and `averageCost` equal to purchase price, `canBeManufactured:false`, hard-coded `tax:{taxable:true,taxRate:18}`, active status; it resets, shows a dedicated success toast, calls `onCreated(result.data)`, then closes.
+
+### Client data and architecture
+
+Original `productsApi` also owns Category, Brand and UOM list/create/update/delete methods. Hooks use `['products',filters]` + placeholder data, `['product',id]`, invalidate `['products']`, and have exact product-specific failure messages. Reference queries use category `isActive:true` (not string), brands with no parameters, and UOM stale time 10 minutes.
+
+Minimum recovery component boundary: `ProductsPage`, `ProductFormModal`, `QuickCreateProductModal`, `productSchemas`, `productsApi`, `useProducts`, plus small internal form-state/variation/combo/tier helpers only if they preserve source behavior. Do not place Product form behavior in page.jsx or combine Wholesale Prices/Price Checker into this module.
+
+### Dependency-safe implementation checkpoints
+
+1. **3B — page and client data layer:** exact Products table/filter/view-edit-delete feedback/query behavior, reference APIs/hooks and Product page tests. Completion: source-identical page observable behavior, without changing Product backend.
+2. **3C — basic/pricing/stock/sales form:** dedicated modal, Basic/Pricing/Stock/Sales tabs, exact hydration/payload/formula/tax quirk and tests. Completion: create/update supports all non-array Product form behavior.
+3. **3D — variations/combo/tiers/quick create:** field arrays, conditional tab/navigation quirks, combo selector, tier behavior, Quick Create and focused tests. Completion: all original Product form/UI behavior is source-tested; Wholesale Prices/Price Checker remain separately queued.
+
 ## Gate decision
 
 **RED.** P0 items 1 (Auth + protected route boundaries), 2 (Product backend/data integrity), 3 (Customer backend/business/data), and 4 (Supplier backend/business/data), plus P1 items 1 (Customer frontend) and 2 (Supplier frontend), are [PARITY]. The recovery gate remains red because Product frontend and the remaining P1/P2 areas are incomplete or unverified. Do not begin any new ERP module. The next authorized area, only after explicit instruction, is P1 item 3: Product complete frontend parity.
