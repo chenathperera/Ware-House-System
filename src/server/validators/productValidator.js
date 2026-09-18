@@ -21,7 +21,7 @@ export const createProductSchema = z.object({
   shortName: z.string().max(100).optional(),
   description: z.string().max(2000).optional(),
   categoryId: id,
-  brandId: id.optional().or(z.literal("")),
+  brandId: id.optional(),
   tags: z.array(z.string()).optional(),
   type: z.enum(["manufactured", "trading", "service", "bundle"]).optional(),
   unitOfMeasure: z.string().min(1),
@@ -29,9 +29,6 @@ export const createProductSchema = z.object({
   purchasePrice: z.number().min(0).optional(),
   mrp: z.number().min(0).optional(),
   callPrice: z.number().min(0).optional(),
-  productNature: z.enum(["single", "variable", "combo"]).optional(),
-  variations: z.array(z.object({ sku: z.string().optional(), name: z.string().min(1), barcode: z.string().optional(), attributeName: z.string().optional(), attributeValue: z.string().optional(), purchasePrice: z.number().min(0).optional(), price: z.number().min(0), stock: z.number().optional() })).optional(),
-  comboItems: z.array(z.object({ productId: id, quantity: z.number().min(1), priceContribution: z.number().min(0).optional() })).optional(),
   tierPricing: z
     .array(
       z.object({

@@ -83,7 +83,7 @@ const productSchema = new mongoose.Schema(
     currency: { type: String, default: "LKR" },
     tierPricing: [
       {
-        tierName: String,
+        tierName: { type: String, trim: true },
         minQuantity: { type: Number, min: 0 },
         maxQuantity: Number,
         price: { type: Number, min: 0 },
@@ -92,7 +92,7 @@ const productSchema = new mongoose.Schema(
     tax: {
       taxable: { type: Boolean, default: true },
       taxRate: { type: Number, default: 18, min: 0, max: 100 },
-      hsCode: String,
+      hsCode: { type: String, trim: true },
     },
     costs: {
       lastPurchaseCost: { type: Number, default: 0, min: 0 },
