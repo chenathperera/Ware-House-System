@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Edit, Plus, Search, Trash2, Package } from "lucide-react";
+import { Edit, Eye, Plus, Search, Trash2, Package } from "lucide-react";
 import PageHeader from "../../../components/ui/PageHeader.jsx";
 import Card from "../../../components/ui/Card.jsx";
 import Button from "../../../components/ui/Button.jsx";
@@ -35,8 +35,9 @@ export default function ProductsPage() {
     limit: 10,
   });
   const [editing, setEditing] = useState(null);
+  const [isView, setIsView] = useState(false);
   const [deleting, setDeleting] = useState(null);
-  const { data, isLoading } = useProducts(filters);
+  const { data, isLoading, isFetching } = useProducts(filters);
   const { data: categoriesData } = useCategories();
   const { data: brandsData } = useBrands();
   const { data: uomsData } = useUoms();
@@ -48,7 +49,14 @@ export default function ProductsPage() {
   const brands = brandsData?.data || [];
   const uoms = uomsData?.data || [];
   const products = data?.data || [];
-  const open = (product = null) => {
+  const formatPrice = (price) =>
+    new Intl.NumberFormat("en-LK", {
+      style: "currency",
+      currency: "LKR",
+      minimumFractionDigits: 2,
+    }).format(price || 0);
+  const open = (product = null, view = false) => {
+    setIsView(view);
     setEditing(product || {});
     reset({
       name: product?.name || "",
@@ -57,7 +65,8 @@ export default function ProductsPage() {
       brandId: product?.brandId?._id || "",
       unitOfMeasure: product?.unitOfMeasure || "",
       basePrice: product?.basePrice || 0,
-      purchasePrice: product?.purchasePrice || 0,
+      purchasePrice:
+        product?.purchasePrice || product?.costs?.standardCost || 0,
       productType: product?.productType || "finished_good",
       type: product?.type || "trading",
       status: product?.status || "active",
@@ -78,14 +87,21 @@ export default function ProductsPage() {
     } catch {}
   };
   const columns = [
-    { key: "productCode", label: "Code" },
+    {
+      key: "productCode",
+      label: "Code",
+      width: "120px",
+      render: (row) => (
+        <span className="font-mono text-xs">{row.productCode}</span>
+      ),
+    },
     {
       key: "name",
       label: "Product",
       render: (row) => (
         <div>
           <p className="font-medium">{row.name}</p>
-          <p className="text-xs text-gray-500">{row.sku || ""}</p>
+          {row.sku && <p className="text-xs text-gray-500">SKU: {row.sku}</p>}
         </div>
       ),
     },
@@ -100,9 +116,61 @@ export default function ProductsPage() {
       render: (row) => row.brandId?.name || "—",
     },
     {
+      key: "purchasePrice",
+      label: "Purchase Price",
+      render: (row) => (
+        <span className="font-medium">
+          {formatPrice(row.purchasePrice || row.costs?.standardCost)}
+        </span>
+      ),
+    },
+    {
       key: "basePrice",
-      label: "Price",
-      render: (row) => `LKR ${Number(row.basePrice || 0).toLocaleString()}`,
+      label: "Sell Price",
+      render: (row) => (
+        <span className="font-medium text-primary-600">
+          {formatPrice(row.basePrice)}
+        </span>
+      ),
+    },
+    {
+      key: "callPrice",
+      label: "Call Price",
+      render: (row) =>
+        row.callPrice > 0 ? (
+          <div className="flex flex-col">
+            <span className="font-medium text-amber-700">
+              {formatPrice(row.callPrice)}
+            </span>
+            {row.callPriceUpdatedAt && (
+              <span
+                className="mt-0.5 text-[10px] text-gray-500"
+                title="Call Price Last Updated"
+              >
+                {new Date(row.callPriceUpdatedAt).toLocaleString()}
+              </span>
+            )}
+          </div>
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        ),
+    },
+    {
+      key: "profit",
+      label: "Profit (%)",
+      render: (row) => {
+        const cost = row.costs?.standardCost || 0;
+        const price = row.basePrice || 0;
+        if (cost <= 0) return <span className="text-gray-400">—</span>;
+        const profit = (((price - cost) / cost) * 100).toFixed(1);
+        return (
+          <span
+            className={`font-semibold ${+profit > 0 ? "text-green-600" : "text-red-600"}`}
+          >
+            {profit}%
+          </span>
+        );
+      },
     },
     {
       key: "status",
@@ -115,10 +183,34 @@ export default function ProductsPage() {
       render: (row) =>
         canManage && (
           <div className="flex gap-1">
-            <button onClick={() => open(row)}>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                open(row, true);
+              }}
+              className="rounded p-1.5 text-gray-500 transition hover:bg-blue-50 hover:text-blue-600"
+              title="View"
+            >
+              <Eye size={16} />
+            </button>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                open(row);
+              }}
+              className="rounded p-1.5 text-gray-500 transition hover:bg-primary-50 hover:text-primary-600"
+              title="Edit"
+            >
               <Edit size={16} />
             </button>
-            <button onClick={() => setDeleting(row)} className="text-red-600">
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                setDeleting(row);
+              }}
+              className="rounded p-1.5 text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+              title="Delete"
+            >
               <Trash2 size={16} />
             </button>
           </div>
@@ -140,9 +232,12 @@ export default function ProductsPage() {
         }
       />
       <Card>
-        <div className="flex gap-3 border-b p-4">
-          <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+        <div className="flex flex-wrap gap-3 border-b border-gray-200 p-4">
+          <div className="relative min-w-[200px] flex-1">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
             <input
               className="w-full rounded border px-9 py-2"
               placeholder="Search by name, SKU, code..."
@@ -153,6 +248,7 @@ export default function ProductsPage() {
             />
           </div>
           <Select
+            disabled={isView}
             placeholder="All Categories"
             options={categories.map((item) => ({
               value: item._id,
@@ -168,6 +264,7 @@ export default function ProductsPage() {
             }
           />
           <Select
+            disabled={isView}
             placeholder="All Statuses"
             options={statuses.map((value) => ({ value, label: value }))}
             value={filters.status}
@@ -192,13 +289,32 @@ export default function ProductsPage() {
           <EmptyState
             icon={Package}
             title="No products found"
-            description="Add your first product"
+            description={
+              filters.search || filters.categoryId || filters.status
+                ? "Try adjusting your filters"
+                : "Get started by adding your first product"
+            }
+            action={
+              canManage &&
+              !filters.search && (
+                <Button variant="primary" onClick={() => open()}>
+                  <Plus size={16} className="mr-1.5" />
+                  Add Product
+                </Button>
+              )
+            }
           />
+        )}
+        {isFetching && !isLoading && (
+          <div className="pointer-events-none absolute inset-0 bg-white/30" />
         )}
       </Card>
       <Modal
         isOpen={editing !== null}
-        onClose={() => setEditing(null)}
+        onClose={() => {
+          setEditing(null);
+          setIsView(false);
+        }}
         title={editing?._id ? "Edit Product" : "New Product"}
         size="lg"
       >
@@ -293,7 +409,9 @@ export default function ProductsPage() {
           setDeleting(null);
         }}
         title="Delete Product"
-        message={`Delete "${deleting?.name}"? This is a soft delete.`}
+        message={`Are you sure you want to delete "${deleting?.name}"? This action soft-deletes the product but can be restored by an admin.`}
+        confirmText="Delete"
+        variant="danger"
         loading={deleteMutation.isPending}
       />
     </div>

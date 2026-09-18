@@ -21,7 +21,8 @@
     "test:products": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/products.test.mjs",
     "test:frontend": "node --test tests/frontend-auth.test.mjs",
     "test:customer-frontend": "node --conditions=react-server --test tests/customer-frontend.test.mjs",
-    "test:supplier-frontend": "node --conditions=react-server --test tests/supplier-frontend.test.mjs"
+    "test:supplier-frontend": "node --conditions=react-server --test tests/supplier-frontend.test.mjs",
+    "test:product-page-data": "node --test tests/product-page-data.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

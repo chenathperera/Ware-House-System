@@ -70,6 +70,13 @@ The current tree also has uncommitted Product validator work. It is **not** evid
 
 **Audit-only checkpoint 3A, 2026-09-18.** Original authority: `frontend/src/pages/ProductsPage.jsx`, `features/products/ProductFormModal.jsx`, `QuickCreateProductModal.jsx`, `productSchemas.js`, `productsApi.js`, `useProducts.js`, with `pages/WholesalePricesPage.jsx` and `PriceCheckerPage.jsx` inspected only for Product dependencies. No Product implementation files were changed.
 
+| Product frontend checkpoint | Status | Evidence / remaining scope |
+| --- | --- | --- |
+| 3A — structure + behavior audit | [PARITY / COMPLETE] | Original source map below was completed before implementation. |
+| 3B — Products page + data layer | [PARITY] | Original filters, table/value formatting, view/edit/delete state, loading/empty/fetching presentation, Product/reference APIs, queries, mutations, invalidation, and focused 3B tests are restored. The temporary simplified modal remains intentionally unexpanded. |
+| 3C — core Product modal | [PENDING] | Basic, Pricing & Tax, Stock & Packaging, and Sales Config form internals only. |
+| 3D — complex Product workflows | [PENDING] | Variations, combos, tiers, Quick Create, and final Product frontend parity only. |
+
 ### Products page
 
 | Behavior | Original | Current Next | Status |
