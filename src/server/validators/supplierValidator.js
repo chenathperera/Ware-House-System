@@ -59,6 +59,7 @@ export const createSupplierSchema = z.object({
   shippingTerms: z.string().optional(),
   averageLeadTimeDays: z.number().min(0).optional(),
   status: z.enum(["active", "inactive", "blacklisted", "on_hold"]).optional(),
+  blacklistReason: z.string().optional(),
   notes: z.string().max(2000).optional(),
   internalNotes: z.string().max(2000).optional(),
 });

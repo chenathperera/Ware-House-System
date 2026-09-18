@@ -6,6 +6,13 @@ export const useSuppliers = (filters = {}) =>
   useQuery({
     queryKey: ["suppliers", filters],
     queryFn: () => suppliersApi.list(filters),
+    placeholderData: (previous) => previous,
+  });
+export const useSupplier = (id) =>
+  useQuery({
+    queryKey: ["supplier", id],
+    queryFn: () => suppliersApi.getById(id),
+    enabled: !!id,
   });
 const useSupplierMutation = (fn, success) => {
   const client = useQueryClient();
@@ -15,8 +22,7 @@ const useSupplierMutation = (fn, success) => {
       client.invalidateQueries({ queryKey: ["suppliers"] });
       toast.success(success);
     },
-    onError: (error) =>
-      toast.error(error.response?.data?.message || "Request failed"),
+    onError: (error) => toast.error(error.response?.data?.message || "Failed"),
   });
 };
 export const useCreateSupplier = () =>

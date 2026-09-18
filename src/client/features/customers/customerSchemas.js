@@ -1,5 +1,29 @@
 import { z } from "zod";
 
+const addressSchema = z.object({
+  label: z.string().optional().or(z.literal("")),
+  line1: z.string().optional().or(z.literal("")),
+  line2: z.string().optional().or(z.literal("")),
+  city: z.string().optional().or(z.literal("")),
+  state: z.string().optional().or(z.literal("")),
+  country: z.string().optional().or(z.literal("")),
+  postalCode: z.string().optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal("")),
+  deliveryInstructions: z.string().optional().or(z.literal("")),
+  isDefault: z.boolean().optional(),
+});
+
+const contactSchema = z.object({
+  name: z.string().optional().or(z.literal("")),
+  designation: z.string().optional().or(z.literal("")),
+  email: z.string().email("Invalid email").or(z.literal("")).optional(),
+  phone: z.string().optional().or(z.literal("")),
+  role: z
+    .enum(["owner", "purchasing", "accounts", "logistics", "other"])
+    .optional(),
+  isPrimary: z.boolean().optional(),
+});
+
 export const customerFormSchema = z.object({
   customerType: z.enum(["company", "individual"]),
   businessType: z.enum([
@@ -10,12 +34,26 @@ export const customerFormSchema = z.object({
     "end_user",
     "other",
   ]),
-  displayName: z.string().min(1, "Display name is required").max(100),
   companyName: z.string().max(200).optional().or(z.literal("")),
+  displayName: z.string().min(1, "Display name is required").max(100),
+  firstName: z.string().optional().or(z.literal("")),
+  lastName: z.string().optional().or(z.literal("")),
   customerGroupId: z.string().optional().or(z.literal("")),
-  contactName: z.string().optional().or(z.literal("")),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: z.string().optional().or(z.literal("")),
+  taxRegistrationNumber: z.string().optional().or(z.literal("")),
+  businessRegistrationNumber: z.string().optional().or(z.literal("")),
+  industry: z.string().optional().or(z.literal("")),
+  primaryContact: z
+    .object({
+      name: z.string().optional().or(z.literal("")),
+      email: z.string().email("Invalid email").or(z.literal("")).optional(),
+      phone: z.string().optional().or(z.literal("")),
+      mobile: z.string().optional().or(z.literal("")),
+    })
+    .optional(),
+  billingAddress: addressSchema.optional(),
+  shippingAddresses: z.array(addressSchema).optional(),
+  contacts: z.array(contactSchema).optional(),
+  assignedSalesRep: z.string().optional().or(z.literal("")),
   paymentTermsType: z.enum(["advance", "cod", "credit"]),
   creditDays: z.coerce.number().min(0).optional(),
   creditLimit: z.coerce.number().min(0).optional(),

@@ -8,15 +8,27 @@ export const useCustomers = (filters = {}) =>
   useQuery({
     queryKey: ["customers", filters],
     queryFn: () => customersApi.list(filters),
+    placeholderData: (previous) => previous,
+  });
+
+export const useCustomer = (id) =>
+  useQuery({
+    queryKey: ["customer", id],
+    queryFn: () => customersApi.getById(id),
+    enabled: !!id,
   });
 
 function useCustomerMutation(mutationFn, successMessage, failureMessage) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      toast.success(successMessage);
+      toast.success(
+        typeof successMessage === "function"
+          ? successMessage(data)
+          : successMessage,
+      );
     },
     onError: (error) =>
       toast.error(error.response?.data?.message || failureMessage),
@@ -44,6 +56,13 @@ export const useDeleteCustomer = () =>
 export const useToggleCreditHold = () =>
   useCustomerMutation(
     ({ id, reason }) => customersApi.toggleCreditHold(id, reason),
-    "Credit hold updated",
-    "Failed to update credit hold",
+    (data) => data.message,
+    "Failed",
   );
+
+export const useCustomerGroups = () =>
+  useQuery({
+    queryKey: ["customerGroups"],
+    queryFn: () => customersApi.listGroups(),
+    staleTime: 5 * 60 * 1000,
+  });
