@@ -29,6 +29,16 @@ export const createProductSchema = z.object({
   purchasePrice: z.number().min(0).optional(),
   mrp: z.number().min(0).optional(),
   callPrice: z.number().min(0).optional(),
+  tierPricing: z
+    .array(
+      z.object({
+        tierName: z.string(),
+        minQuantity: z.number().min(0),
+        maxQuantity: z.number().optional().nullable(),
+        price: z.number().min(0),
+      }),
+    )
+    .optional(),
   status: z.enum(["active", "inactive", "draft", "discontinued"]).optional(),
   notes: z.string().max(1000).optional(),
 });
