@@ -29,6 +29,9 @@ export const createProductSchema = z.object({
   purchasePrice: z.number().min(0).optional(),
   mrp: z.number().min(0).optional(),
   callPrice: z.number().min(0).optional(),
+  productNature: z.enum(["single", "variable", "combo"]).optional(),
+  variations: z.array(z.object({ sku: z.string().optional(), name: z.string().min(1), barcode: z.string().optional(), attributeName: z.string().optional(), attributeValue: z.string().optional(), purchasePrice: z.number().min(0).optional(), price: z.number().min(0), stock: z.number().optional() })).optional(),
+  comboItems: z.array(z.object({ productId: id, quantity: z.number().min(1), priceContribution: z.number().min(0).optional() })).optional(),
   tierPricing: z
     .array(
       z.object({
@@ -39,6 +42,11 @@ export const createProductSchema = z.object({
       }),
     )
     .optional(),
+  tax: z.object({ taxable: z.boolean().optional(), taxRate: z.number().min(0).max(100).optional(), hsCode: z.string().optional() }).optional(),
+  costs: z.object({ lastPurchaseCost: z.number().min(0).optional(), averageCost: z.number().min(0).optional(), standardCost: z.number().min(0).optional() }).optional(),
+  stockLevels: z.object({ minimumLevel: z.number().min(0).optional(), reorderLevel: z.number().min(0).optional(), maximumLevel: z.number().min(0).optional() }).optional(),
+  packaging: z.object({ unitsPerCarton: z.number().min(0).optional(), cartonsPerPallet: z.number().min(0).optional() }).optional(),
+  salesConfig: z.object({ sellable: z.boolean().optional(), minimumOrderQuantity: z.number().min(0).optional(), allowBackorder: z.boolean().optional() }).optional(),
   status: z.enum(["active", "inactive", "draft", "discontinued"]).optional(),
   notes: z.string().max(1000).optional(),
 });

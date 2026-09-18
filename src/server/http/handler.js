@@ -30,12 +30,11 @@ export function apiHandler(
       await connectMongoDB();
       if (registration) {
         if ((await User.countDocuments()) !== 0) {
-          // Original register route passes a callback that discards protect errors.
-          try {
-            await protect(req, res);
-          } catch {
-            /* validation/controller still execute */
-          }
+          // The original route runs protect before validation and the controller
+          // whenever the system already has a user. Authentication failures
+          // therefore terminate registration instead of being reinterpreted by
+          // the controller as a missing-user error.
+          await protect(req, res);
         }
       } else if (auth) await protect(req, res);
       if (roles) authorize(req, res, ...roles);

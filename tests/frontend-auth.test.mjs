@@ -7,6 +7,8 @@ import {
   getProtectedRouteDecision,
 } from "../src/client/auth/access.js";
 import { createAuthActions, initialAuthState } from "../src/client/auth/state.js";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 test("role destinations and protected route decisions preserve the original gates", () => {
   assert.equal(getLoginDestination({ role: "customer" }), "/price-checker");
@@ -82,4 +84,27 @@ test("persisted-auth actions retain the separate token storage behavior", () => 
   actions.logout();
   assert.equal(values.has("token"), false);
   assert.deepEqual(state, initialAuthState);
+});
+
+test("protected route source preserves the original redirect and public route boundaries", async () => {
+  const root = process.cwd();
+  const protectedRoute = await readFile(
+    path.join(root, "src", "components", "auth", "ProtectedRoute.jsx"),
+    "utf8",
+  );
+  const erpLayout = await readFile(
+    path.join(root, "src", "app", "(erp)", "layout.jsx"),
+    "utf8",
+  );
+  const rootDashboard = await readFile(
+    path.join(root, "src", "app", "(erp)", "page.jsx"),
+    "utf8",
+  );
+  const notFound = await readFile(path.join(root, "src", "app", "not-found.jsx"), "utf8");
+
+  assert.match(protectedRoute, /router\.replace\("\/login"\)/);
+  assert.doesNotMatch(protectedRoute, /\/login\?from=/);
+  assert.match(erpLayout, /allowedRoles=\{ERP_ROLES\}/);
+  assert.match(rootDashboard, /title="Dashboard"/);
+  assert.match(notFound, /Page not found/);
 });

@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     : "pending";
 
   useEffect(() => {
-    if (decision === "login") router.replace(`/login?from=${encodeURIComponent(pathname)}`);
+    if (decision === "login") router.replace("/login");
     if (decision === "unauthorized") {
       console.warn("Access Denied: User role not authorized", {
         userRole: user?.role,

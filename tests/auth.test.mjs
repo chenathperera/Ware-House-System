@@ -208,17 +208,22 @@ test(
       assert.equal(claims.id, admin._id);
       assert.equal((await read(admin)).password, before.password);
     });
-    await t.test("A15/A17/A18 registration gates and swallowed-auth error precedence", async () => {
+    await t.test("A15/A17/A18 registration guard, validation, and controller precedence", async () => {
       status(
         await post("/auth/register", fixture("unauthorized")),
         401,
-        "Not authorized. Only existing admins can register new users.",
+        "Not authorized, no token provided",
       );
-      status(await post("/auth/register", { email: "bad" }), 400, "Validation failed");
       status(
         await post("/auth/register", { ...fixture("duplicate"), email: admin.email }),
-        400,
-        "User with this email already exists",
+        401,
+        "Not authorized, no token provided",
+      );
+      status(await post("/auth/register", { email: "bad" }), 401, "Not authorized, no token provided");
+      status(
+        await post("/auth/register", fixture("invalid-token"), "invalid-token"),
+        401,
+        "Not authorized, token invalid or expired",
       );
       staff = status(
         await post("/auth/register", fixture("staff"), adminToken),
@@ -232,6 +237,11 @@ test(
         await post("/auth/register", fixture("forbidden"), staffToken),
         403,
         "Only admins can register new users",
+      );
+      status(
+        await post("/auth/register", { email: "bad" }, staffToken),
+        400,
+        "Validation failed",
       );
       status(
         await post(

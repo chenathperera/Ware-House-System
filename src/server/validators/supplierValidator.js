@@ -55,8 +55,11 @@ export const createSupplierSchema = z.object({
     })
     .optional(),
   defaultCurrency: z.string().optional(),
+  bankDetails: z.object({ bankName: z.string().optional(), branchName: z.string().optional(), accountNumber: z.string().optional(), accountName: z.string().optional(), swiftCode: z.string().optional() }).optional(),
+  shippingTerms: z.string().optional(),
   averageLeadTimeDays: z.number().min(0).optional(),
   status: z.enum(["active", "inactive", "blacklisted", "on_hold"]).optional(),
   notes: z.string().max(2000).optional(),
+  internalNotes: z.string().max(2000).optional(),
 });
 export const updateSupplierSchema = createSupplierSchema.partial();
