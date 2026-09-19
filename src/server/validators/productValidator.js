@@ -34,7 +34,7 @@ export const createProductSchema = z.object({
       z.object({
         tierName: z.string(),
         minQuantity: z.number().min(0),
-        maxQuantity: z.number().optional().nullable(),
+        maxQuantity: z.number().optional(),
         price: z.number().min(0),
       }),
     )

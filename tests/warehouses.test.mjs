@@ -211,6 +211,7 @@ test(
             name: `Secondary Warehouse ${shortRun}`,
             type: "branch",
             isDefault: true,
+            warehouseManager: manager._id.toString(),
           },
           managerToken,
         ),
@@ -223,40 +224,42 @@ test(
       assert.equal(primary.isDefault, false);
     });
 
-    await t.test("manager can search, update, and soft-delete non-default warehouses", async () => {
+    await t.test("manager can search, update, and soft-delete a non-default warehouse", async () => {
       const search = await get(`/warehouses?search=${encodeURIComponent("Secondary")}`, managerToken);
       status(search, 200);
       assert.equal(search.body.count, 1);
 
-      const secondaryId = createdWarehouseIds[1].toString();
+      const primaryId = createdWarehouseIds[0].toString();
       const updated = status(
         await put(
-          `/warehouses/${secondaryId}`,
-          { name: `Secondary Updated ${shortRun}`, warehouseManager: "" },
+          `/warehouses/${primaryId}`,
+          { name: `Primary Updated ${shortRun}`, warehouseManager: "" },
           managerToken,
         ),
         200,
       );
-      assert.equal(updated.name, `Secondary Updated ${shortRun}`);
+      assert.equal(updated.name, `Primary Updated ${shortRun}`);
 
-      status(await del(`/warehouses/${secondaryId}`, managerToken), 200, "Warehouse deleted");
+      status(await del(`/warehouses/${primaryId}`, managerToken), 200, "Warehouse deleted");
 
-      const hidden = await Warehouse.collection.findOne({ _id: createdWarehouseIds[1] });
+      const hidden = await Warehouse.collection.findOne({ _id: createdWarehouseIds[0] });
       assert.ok(hidden.deletedAt);
       assert.equal(hidden.isActive, false);
     });
 
     await t.test("cannot delete the default warehouse", async () => {
       status(
-        await del(`/warehouses/${createdWarehouseIds[0]}`, adminToken),
+        await del(`/warehouses/${createdWarehouseIds[1]}`, adminToken),
         400,
         "Cannot delete the default warehouse. Set another as default first.",
       );
     });
 
     await t.test("detail retrieval populates manager fields", async () => {
-      const detail = status(await get(`/warehouses/${createdWarehouseIds[0]}`, staffToken), 200);
-      assert.equal(detail.warehouseCode, codePrimary);
+      const detail = status(await get(`/warehouses/${createdWarehouseIds[1]}`, staffToken), 200);
+      assert.equal(detail.warehouseCode, codeSecondary);
+      assert.equal(detail.warehouseManager.firstName, manager.firstName);
+      assert.equal(detail.warehouseManager.email, manager.email);
     });
 
     await t.test("missing warehouse returns 404", async () => {

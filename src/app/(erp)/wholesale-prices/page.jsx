@@ -32,19 +32,13 @@ export default function WholesalePricesPage() {
       await updateProduct.mutateAsync({
         id: product._id,
         data: {
-          tierPricing: tiers.map((tier) => ({
-            ...tier,
-            minQuantity: Number(tier.minQuantity),
-            maxQuantity:
-              tier.maxQuantity === "" || tier.maxQuantity === null
-                ? null
-                : Number(tier.maxQuantity),
-            price: Number(tier.price),
-          })),
+          tierPricing: tiers,
         },
       });
       setEditingId(null);
-    } catch {}
+    } catch {
+      // Error handled by hook.
+    }
   };
 
   return (
@@ -81,11 +75,7 @@ export default function WholesalePricesPage() {
                     <h3 className="font-bold">{product.name}</h3>
                     <p className="font-mono text-xs text-gray-500">
                       {product.productCode} | Buying Price: LKR{" "}
-                      {(
-                        product.costs?.standardCost ||
-                        product.purchasePrice ||
-                        0
-                      ).toLocaleString()}
+                      {(product.costs?.standardCost || 0).toLocaleString()}
                     </p>
                   </div>
                   {editing ? (
@@ -135,16 +125,13 @@ export default function WholesalePricesPage() {
                           </thead>
                           <tbody>
                             {tiers.map((tier, index) => {
-                              const cost =
-                                product.costs?.standardCost ||
-                                product.purchasePrice ||
-                                0;
+                              const cost = product.costs?.standardCost || 0;
                               const profit = cost
                                 ? (
-                                    ((Number(tier.price) - cost) / cost) *
+                                    ((tier.price - cost) / cost) *
                                     100
                                   ).toFixed(2)
-                                : "0";
+                                : 0;
                               return (
                                 <tr key={index}>
                                   <td>
@@ -228,6 +215,7 @@ export default function WholesalePricesPage() {
                         type="button"
                         variant="outline"
                         size="sm"
+                        fullWidth
                         onClick={() =>
                           setTiers((current) => [
                             ...current,
@@ -264,6 +252,11 @@ export default function WholesalePricesPage() {
                           </p>
                         </div>
                       ))}
+                      {(!product.tierPricing || product.tierPricing.length === 0) && (
+                        <div className="col-span-3 flex items-center text-sm italic text-gray-400">
+                          No additional wholesale tiers defined.
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
