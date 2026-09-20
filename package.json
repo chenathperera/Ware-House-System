@@ -18,6 +18,7 @@
     "test:warehouse-frontend": "node --conditions=react-server --test tests/warehouse-frontend.test.mjs",
     "test:wholesale-prices": "node --conditions=react-server --test tests/wholesale-prices.test.mjs",
     "test:price-checker": "node --test tests/price-checker.test.mjs",
+    "test:users-roles-profile": "node --test tests/users-roles-profile.test.mjs",
     "test:customer-groups": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/customer-groups.test.mjs",
     "test:customers": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/customers.test.mjs",
     "test:suppliers": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/suppliers.test.mjs",

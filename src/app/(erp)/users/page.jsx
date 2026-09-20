@@ -157,8 +157,8 @@ function UsersPage() {
   return (
     <>
       <PageHeader
-        title="Staff & Users"
-        description="Manage system users and their roles"
+        title="Users"
+        description="Manage team members and their access levels"
         actions={
           <Button
             onClick={() => {
@@ -171,30 +171,32 @@ function UsersPage() {
           </Button>
         }
       />
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-4 gap-4">
         <Card className="p-4">
-          <p className="text-xs text-gray-500">Active Users</p>
-          <p className="mt-1 text-2xl font-bold text-green-600">{active}</p>
+          <p className="text-sm text-gray-600">Total Users</p>
+          <p className="text-2xl font-semibold">{total}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs text-gray-500">Inactive Users</p>
-          <p className="mt-1 text-2xl font-bold text-gray-500">{inactive}</p>
+          <p className="text-sm text-gray-600">Active</p>
+          <p className="text-2xl font-semibold text-green-600">{active}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs text-gray-500">Administrators</p>
-          <p className="mt-1 text-2xl font-bold text-primary-600">
-            {users.filter((user) => user.role === "admin").length}
-          </p>
+          <p className="text-sm text-gray-600">Inactive</p>
+          <p className="text-2xl font-semibold text-gray-500">{inactive}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-sm text-gray-600">Admins</p>
+          <p className="text-2xl font-semibold text-red-600">{users.filter((user) => user.role === "admin").length}</p>
         </Card>
       </div>
       <Card>
-        <div className="flex flex-col gap-3 border-b p-4 md:flex-row">
-          <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+        <div className="flex flex-wrap gap-3 border-b p-4">
+          <div className="relative min-w-[200px] flex-1">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               value={filters.search}
               onChange={(event) => set({ search: event.target.value })}
-              placeholder="Search users..."
+              placeholder="Search by name or email..."
               className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
             />
           </div>
@@ -202,16 +204,16 @@ function UsersPage() {
             options={ROLES.map(({ value, label }) => ({ value, label }))}
             value={filters.role}
             onChange={(event) => set({ role: event.target.value })}
-            className="md:w-48"
+            placeholder="All Roles"
           />
           <Select
             options={[
-              { value: "true", label: "Active" },
-              { value: "false", label: "Inactive" },
+              { value: "true", label: "Active only" },
+              { value: "false", label: "Inactive only" },
             ]}
             value={filters.isActive}
             onChange={(event) => set({ isActive: event.target.value })}
-            className="md:w-40"
+            placeholder="All"
           />
         </div>
         {isLoading ? (
@@ -229,8 +231,13 @@ function UsersPage() {
         ) : (
           <EmptyState
             icon={UserCog}
-            title="No users found"
-            description="Try changing your filters."
+            title="No users"
+            description="Add your first team member"
+            action={
+              <Button variant="primary" onClick={() => setForm(true)}>
+                <Plus size={16} className="mr-1.5" /> Add User
+              </Button>
+            }
           />
         )}
       </Card>
@@ -243,7 +250,16 @@ function UsersPage() {
           setDeactivating(null);
         }}
         title="Deactivate User"
-        message={`Are you sure you want to deactivate ${deactivating?.firstName} ${deactivating?.lastName}? They will no longer be able to sign in.`}
+        message={
+          <div>
+            <p className="mb-2">
+              Deactivate <strong>{deactivating?.firstName} {deactivating?.lastName}</strong>?
+            </p>
+            <p className="text-sm text-gray-600">
+              They will no longer be able to log in. Their historical records (orders, approvals) remain intact.
+            </p>
+          </div>
+        }
         confirmText="Deactivate"
         loading={remove.isPending}
       />

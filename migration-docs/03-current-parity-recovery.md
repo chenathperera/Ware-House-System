@@ -136,4 +136,19 @@ Minimum recovery component boundary: `ProductsPage`, `ProductFormModal`, `QuickC
 
 ## Gate decision
 
-**RED.** P0 items 1 (Auth + protected route boundaries), 2 (Product backend/data integrity), 3 (Customer backend/business/data), and 4 (Supplier backend/business/data), plus P1 items 1 (Customer frontend), 2 (Supplier frontend), 3 (Product frontend), and 4 (Warehouse), Wholesale Prices, and Price Checker are [PARITY]. The recovery gate remains red because Receipt/Print and the remaining P1/P2 areas are incomplete or unverified. Do not begin any new ERP module.
+**RECOVERABLE EXISTING SCOPE: GREEN.** Auth, protected routing, customers, suppliers, products, warehouse, wholesale prices, price checker, users, roles, profile, settings, categories, brands, UOM, customer groups and the focused P2 pass are source-verified.
+
+**FULL EXISTING-MIGRATION RECOVERY: BLOCKED-BY-DEPENDENCIES.** Dashboard requires excluded Reports, Sales, Invoice, Stock, Payments, Purchase and Production APIs; Receipt/Print requires the excluded Invoice API including `invoicesApi.getById` and `/invoices/:id/print-json`. No substitute contract was created.
+
+## Final existing-scope recovery status — 2026-09-20
+
+| Area | Status | Evidence |
+| --- | --- | --- |
+| Dashboard | [BLOCKED-BY-DEPENDENCIES] | Its original KPI/chart data requires excluded modules; no synthetic data was created. |
+| Users, Roles, Profile | [PARITY] | Source-aligned users UI/actions/form, system role cards and profile/password flows; focused parity test added. |
+| Settings | [PARITY] | Source-aligned seven rendered company fields, hydration, payload and feedback. |
+| Categories, Brands | [PARITY] | Source-aligned forms/view modes/actions and isolated API contract tests. |
+| UOM | [PARITY] | Original API/reference-data-only scope; current API/validation/consumer behavior verified without inventing a page. |
+| Customer Groups | [PARITY] | Source-aligned commercial defaults, nested terms, color/priority, view mode and API behavior. |
+| P2 recoverable UI review | [PARITY] | Source-backed review of labels, filters, tables, modals, empty/loading states, confirmations and interactions; Users and cancel-button parity repaired. |
+| Receipt/Print | [BLOCKED-BY-INVOICES] | Requires original Invoice retrieval and print JSON API; Invoice remains excluded. |

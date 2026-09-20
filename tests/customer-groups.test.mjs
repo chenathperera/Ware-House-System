@@ -88,7 +88,7 @@ test("customer groups module contract against the isolated local database", { ti
   });
   await t.test("duplicate name and code return the original duplicate contract", async () => {
     status(await post("/customer-groups", { name: "Priority Group", code: `GX${shortRun}`.slice(0, 20) }, adminToken), 400, "Duplicate name: Priority Group already exists");
-    status(await post("/customer-groups", { name: "Other Group", code: primaryCode }, adminToken), 400, `Duplicate code: ${primaryCode} already exists`);
+    status(await post("/customer-groups", { name: `Other Group ${shortRun}`, code: primaryCode }, adminToken), 400, `Duplicate code: ${primaryCode} already exists`);
   });
   await t.test("manager can search, update, and soft-delete groups", async () => {
     const listed = await get("/customer-groups?search=Priority", managerToken);

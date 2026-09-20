@@ -192,7 +192,7 @@ export default function UserFormModal({ isOpen, onClose, user = null }) {
           )}
         </div>
         <div className="flex justify-end gap-2 border-t bg-gray-50 px-6 py-4">
-          <Button variant="outline" onClick={onClose} disabled={loading}>
+          <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
           <Button type="submit" loading={loading}>
