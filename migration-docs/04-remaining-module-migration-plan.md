@@ -113,3 +113,26 @@ Stock must come first because original `stockController` owns the only shared in
 
 - **Receipt/Print:** after Phase 3 Invoice, specifically `GET /invoices/:id` and the original `GET /invoices/:id/print-json` contract.
 - **Dashboard:** after Phase 5 Reports and all data sources actually queried by `DashboardPage`/dashboard reports: sales/orders, invoice revenue/receivables, stock/low stock, payment/cash flow, purchase/GRN, production, and report aggregates.
+
+## Stock Foundation backend checkpoint — 2026-09-20
+
+- Models: **COMPLETE** — existing `StockItem` parity retained; `StockMovement` and `StockReservation` restored.
+- Core service: **COMPLETE** — original increase/decrease, weighted cost, audit movement, reserve/release/fulfill and availability semantics retained with optional session propagation.
+- Backend API service and route handlers: **COMPLETE** — `GET /stock`, `GET /stock/movements`, `GET /stock/by-product/:productId`, `POST /stock/opening`, `POST /stock/adjustment`, `POST /stock/transfer`, and `GET /stock/reservations` are restored through App Router handlers.
+- Authorization: **COMPLETE** — all read routes authenticate; only opening/adjustment/transfer authorize `admin`, `manager`, `warehouse_staff` exactly as original `stockRoutes`.
+- Validator behavior: **COMPLETE** — original has no Stock validator middleware; controller-level body checks and service validation are intentionally preserved.
+- Backend transaction parity: **PARITY** — opening, adjustment and transfer retain original `startSession`, `withTransaction`, service ordering and `finally session.endSession` shape. `tests/stock-api.test.mjs` runs against an isolated single-node replica set and proves rollback after a prior item has completed for all three workflows.
+- Backend tests: **PASS** — stock service 1/1; source-derived API, authorization, read/filter/population, success/error, audit, valuation, and rollback suite 7/7. The API suite's transaction URI is explicit and allow-listed in the test so the ordinary standalone developer database is never mistaken for a rollback-capable environment.
+- Product regression: **PASS** — 9/9.
+- Warehouse regression: **PASS** — 11/11.
+- Final verification: **PASS** — `npm run lint` completed with 0 errors (7 pre-existing warnings), `npm run build` compiled the production app successfully, and `git diff --check` reported no whitespace errors.
+- Stock backend gate: **GREEN** — models, core service, backend API service, route handlers, authorization and transaction semantics are source-tested.
+- Stock frontend data layer: **PARITY** — original API methods, query keys, `placeholderData`, enabled source-stock queries, mutations, toast success/failure semantics and stock/movement invalidation restored.
+- Stock Overview: **PARITY** — original summary strip, filters, status logic, table, pagination, loading/empty behavior and write-action role visibility restored at `/stock`.
+- Stock Movements: **PARITY** — original audit columns, direction/type display, warehouse/type filters, pagination and empty/loading states restored at `/stock/movements`.
+- Opening Stock: **PARITY** — original warehouse/product lines, auto-cost fill, totals, validation, notes, mutation/navigation flow restored at `/stock/opening`.
+- Stock Adjustment: **PARITY** — original restricted front-end visibility, admin verification flow, selected warehouse stock, reasons, negative preview and mutation flow restored at `/stock/adjustment`.
+- Stock Transfer: **PARITY** — original source-stock query, available-only product selection, quantity preview, same-warehouse validation and atomic transfer mutation restored at `/stock/transfer`.
+- Stock frontend tests: **PASS** — 3/3 source-derived data-layer/page/form workflow checks.
+- Stock full regression: **PASS** — stock service 1/1, stock API/rollback 7/7, product backend 9/9, warehouse backend 11/11, stock frontend 3/3; prior product and warehouse frontend parity suites remain green.
+- Overall Stock Foundation gate: **GREEN** — no Stock blockers remain. This unlocks downstream Damages, Purchase Orders, GRN, Sales Orders, Invoice, returns and Production in dependency order; none are started by this checkpoint.

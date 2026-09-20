@@ -1,0 +1,31 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import mongoose from "mongoose";
+import Product from "../src/server/models/Product.js";
+import Warehouse from "../src/server/models/Warehouse.js";
+import StockItem from "../src/server/models/StockItem.js";
+import StockMovement from "../src/server/models/StockMovement.js";
+import StockReservation from "../src/server/models/StockReservation.js";
+import { decreaseStock, fulfillReservations, getAvailableStock, increaseStock, releaseReservations, reserveStock } from "../src/server/services/stockService.js";
+
+test("stock service preserves original warehouse quantities, audit movements, costing, and reservations", async (t) => {
+  assert.equal(process.env.MONGODB_URI, "mongodb://127.0.0.1:27017/warehouse_system_next");
+  await mongoose.connect(process.env.MONGODB_URI);
+  const suffix = new mongoose.Types.ObjectId().toString().slice(-8);
+  const product = await Product.create({ name: `Stock ${suffix}`, categoryId: new mongoose.Types.ObjectId(), unitOfMeasure: "pcs", basePrice: 1 });
+  const warehouse = await Warehouse.create({ warehouseCode: `ST${suffix}`.slice(0, 20), name: `Stock ${suffix}` });
+  const userId = new mongoose.Types.ObjectId();
+  t.after(async () => { await StockReservation.deleteMany({ productId: product._id }); await StockMovement.deleteMany({ productId: product._id }); await StockItem.deleteMany({ productId: product._id }); await Product.deleteOne({ _id: product._id }); await Warehouse.deleteOne({ _id: warehouse._id }); await mongoose.disconnect(); });
+  const first = await increaseStock({ productId: product._id, warehouseId: warehouse._id, quantity: 10, costPerUnit: 5, movementType: "opening_stock", userId });
+  assert.equal(first.stockItem.quantities.onHand, 10); assert.equal(first.movement.direction, "in");
+  const second = await increaseStock({ productId: product._id, warehouseId: warehouse._id, quantity: 10, costPerUnit: 7, movementType: "adjustment_in", userId });
+  assert.equal(second.stockItem.costPerUnit, 6); assert.equal((await StockMovement.countDocuments({ productId: product._id })), 2);
+  await assert.rejects(() => decreaseStock({ productId: product._id, warehouseId: warehouse._id, quantity: 21, movementType: "adjustment_out", userId }), /Insufficient stock/);
+  const reservation = await reserveStock({ productId: product._id, warehouseId: warehouse._id, quantity: 4, sourceDocument: { id: new mongoose.Types.ObjectId() }, userId });
+  assert.equal(reservation.stockItem.quantities.reserved, 4); assert.deepEqual(await getAvailableStock(product._id, warehouse._id), { onHand: 20, reserved: 4, available: 16 });
+  await releaseReservations({ sourceDocumentId: reservation.reservation.sourceDocument.id, reason: "cancel" });
+  assert.equal((await StockReservation.findById(reservation.reservation._id)).status, "cancelled");
+  const active = await reserveStock({ productId: product._id, warehouseId: warehouse._id, quantity: 3, sourceDocument: { id: new mongoose.Types.ObjectId() }, userId });
+  await fulfillReservations({ sourceDocumentId: active.reservation.sourceDocument.id, sourceDocumentNumber: "SO-1", userId });
+  assert.equal((await StockItem.findById(second.stockItem._id)).quantities.onHand, 17);
+});
