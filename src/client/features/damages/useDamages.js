@@ -1,0 +1,10 @@
+"use client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { damagesApi } from "./damagesApi.js";
+const failure = (error) => toast.error(error.response?.data?.message || "Failed");
+export const useDamages = (filters = {}) => useQuery({ queryKey: ["damages", filters], queryFn: () => damagesApi.list(filters), placeholderData: (previous) => previous });
+export const useDamage = (id) => useQuery({ queryKey: ["damage", id], queryFn: () => damagesApi.getById(id), enabled: !!id });
+export const useDamageSummary = () => useQuery({ queryKey: ["damageSummary"], queryFn: damagesApi.summary });
+export const useCreateDamage = () => { const queryClient = useQueryClient(); return useMutation({ mutationFn: damagesApi.create, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["damages"] }); queryClient.invalidateQueries({ queryKey: ["stock"] }); toast.success("Damage recorded"); }, onError: failure }); };
+export const useWriteOffDamage = () => { const queryClient = useQueryClient(); return useMutation({ mutationFn: damagesApi.writeOff, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["damages"] }); toast.success("Written off"); }, onError: failure }); };

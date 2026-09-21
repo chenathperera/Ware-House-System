@@ -22,6 +22,7 @@
     "test:stock-service": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/stock-service.test.mjs",
     "test:stock-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/stock-api.test.mjs",
     "test:stock-frontend": "node --test tests/stock-frontend.test.mjs",
+    "test:damages-frontend": "node --test tests/damages-frontend.test.mjs",
     "test:customer-groups": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/customer-groups.test.mjs",
     "test:customers": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/customers.test.mjs",
     "test:suppliers": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/suppliers.test.mjs",
