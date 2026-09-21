@@ -111,6 +111,15 @@ Stock must come first because original `stockController` owns the only shared in
 
 ## Unlock points
 
+## Damages migration — 2026-09-21
+
+- Model, controller contract, routes, frontend register, API/hooks and sidebar route: **COMPLETE**.
+- Stock integration: **PARITY** — creation decreases Stock only when `adjustStock` is truthy; the movement is `damage` with source document `damage_record`.
+- Write-off: **PARITY** — admin/manager only; stamps approval and write-off value without a second stock decrease.
+- Reads/summary: **PARITY** — source/product/warehouse/disposition/date pagination, populated list/detail, and per-source aggregate restored.
+- Tests: **PASS** — backend/API/transaction 6/6; frontend 1/1.
+- DAMAGES GATE: **GREEN**.
+
 - **Receipt/Print:** after Phase 3 Invoice, specifically `GET /invoices/:id` and the original `GET /invoices/:id/print-json` contract.
 - **Dashboard:** after Phase 5 Reports and all data sources actually queried by `DashboardPage`/dashboard reports: sales/orders, invoice revenue/receivables, stock/low stock, payment/cash flow, purchase/GRN, production, and report aggregates.
 
