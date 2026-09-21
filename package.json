@@ -24,6 +24,7 @@
     "test:stock-frontend": "node --test tests/stock-frontend.test.mjs",
     "test:damages-frontend": "node --test tests/damages-frontend.test.mjs",
     "test:damages-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/damages-api.test.mjs",
+    "test:purchase-orders-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/purchase-orders-api.test.mjs",
     "test:customer-groups": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/customer-groups.test.mjs",
     "test:customers": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/customers.test.mjs",
     "test:suppliers": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/suppliers.test.mjs",

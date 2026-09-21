@@ -1,0 +1,11 @@
+"use client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { purchaseOrdersApi } from "./purchaseOrdersApi.js";
+const error = (err) => toast.error(err.response?.data?.message || "Failed");
+export const usePurchaseOrders = (filters = {}) => useQuery({ queryKey: ["purchaseOrders", filters], queryFn: () => purchaseOrdersApi.list(filters), placeholderData: (previous) => previous });
+export const usePurchaseOrder = (id) => useQuery({ queryKey: ["purchaseOrder", id], queryFn: () => purchaseOrdersApi.getById(id), enabled: !!id });
+export const useCreatePurchaseOrder = () => { const qc = useQueryClient(); return useMutation({ mutationFn: purchaseOrdersApi.create, onSuccess: () => { qc.invalidateQueries({ queryKey: ["purchaseOrders"] }); toast.success("PO created"); }, onError: error }); };
+export const useUpdatePurchaseOrder = () => { const qc = useQueryClient(); return useMutation({ mutationFn: ({ id, data }) => purchaseOrdersApi.update(id, data), onSuccess: () => { qc.invalidateQueries({ queryKey: ["purchaseOrders"] }); qc.invalidateQueries({ queryKey: ["purchaseOrder"] }); toast.success("PO updated"); }, onError: error }); };
+export const useChangePoStatus = () => { const qc = useQueryClient(); return useMutation({ mutationFn: ({ id, status, reason }) => purchaseOrdersApi.changeStatus(id, status, reason), onSuccess: (data) => { qc.invalidateQueries({ queryKey: ["purchaseOrders"] }); qc.invalidateQueries({ queryKey: ["purchaseOrder"] }); toast.success(data.message); }, onError: error }); };
+export const useDeletePurchaseOrder = () => { const qc = useQueryClient(); return useMutation({ mutationFn: purchaseOrdersApi.delete, onSuccess: (data) => { qc.invalidateQueries({ queryKey: ["purchaseOrders"] }); toast.success(data.message || "PO deleted"); }, onError: (err) => toast.error(err.response?.data?.message || "Failed to delete PO") }); };
