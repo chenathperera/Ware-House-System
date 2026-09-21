@@ -6,7 +6,7 @@
 
 ### Recovered Next scope
 
-Auth/protected routes; users/roles/profile; settings; categories/brands/UOM/customer groups; customers; suppliers; products (including Product-owned minimal StockItem synchronization); warehouses; wholesale prices; price checker.
+Auth/protected routes; users/roles/profile; settings; categories/brands/UOM/customer groups; customers; suppliers; products (including Product-owned minimal StockItem synchronization); warehouses; wholesale prices; price checker; Purchase Orders (verified).
 
 ### Present but not migrated
 
@@ -15,8 +15,7 @@ Dashboard is **BLOCKED-BY-DEPENDENCIES**: original `dashboardController`/report 
 ### Remaining original modules (27)
 
 1. Stock foundation: inventory overview, opening stock, movements, adjustments, transfers, reservations.
-2. Purchase Orders.
-3. GRN / goods receiving.
+2. GRN / goods receiving.
 4. Bills.
 5. Supplier returns.
 6. Supplier payments, cheques, bank accounts, fund transfers and expenses.
@@ -36,7 +35,7 @@ Dashboard is **BLOCKED-BY-DEPENDENCIES**: original `dashboardController`/report 
 | Module | Actual dependencies | Downstream / side effects | Source evidence |
 | --- | --- | --- | --- |
 | Stock foundation | Product, Warehouse, User; `StockItem`, `StockMovement`, `StockReservation`, `stockService` | Transactional increase/decrease creates immutable movements; inventory, opening, adjustment, transfer and reservation APIs; prerequisite for GRN, sales, returns, damage and production. | `stockController.js`, `stockService.js`, stock models/routes/pages. |
-| Purchase Orders | Supplier, Product, Warehouse, User | Product/supplier/warehouse snapshotting; status workflow; GRN may validate lines and update received quantities/`grns`. | `purchaseOrderController.js`, PO model/validator/routes/pages. |
+| Purchase Orders | Supplier, Product, Warehouse, User | **COMPLETE — 2026-09-21.** Product/supplier/warehouse snapshots, status workflow, soft delete, and the future GRN data boundary are verified. GRN remains unstarted. | `purchaseOrderController.js`, PO model/validator/routes/pages. |
 | GRN | Stock, Product, Warehouse, Supplier; optional Purchase Order | Mongo transaction creates GRN, increases stock with purchase cost/batch, writes movement, links movement, increments PO lines and appends `grns`. | `grnController.js`. |
 | Bills | GRN, Supplier, Purchase Order | Bill/GRN financial matching, supplier payable/balance workflow; prerequisite for supplier payment reporting. | bill model/controller/validator/pages. |
 | Supplier returns | Stock, GRN, Supplier, Product | Reduces returned stock and records supplier-return/GRN workflow. | supplier-return controller/model/pages. |
@@ -61,8 +60,7 @@ Dashboard is **BLOCKED-BY-DEPENDENCIES**: original `dashboardController`/report 
 
 ### Phase 2 — purchasing and supplier liability
 
-3. Purchase Orders.
-4. GRN (requires PO optionally, but also supports direct receiving; must follow Stock).
+3. GRN (requires PO optionally, but also supports direct receiving; must follow Stock). Purchase Orders are complete and GRN is not started by this checkpoint.
 5. Bills.
 6. Supplier Returns.
 7. Bank Accounts, Supplier Payments, Cheques, Fund Transfers and Expenses (migrate bank account first within this group, then payments/cheques/transfers/expenses).
@@ -119,6 +117,17 @@ Stock must come first because original `stockController` owns the only shared in
 - Reads/summary: **PARITY** — source/product/warehouse/disposition/date pagination, populated list/detail, and per-source aggregate restored.
 - Tests: **PASS** — backend/API/transaction 6/6; frontend 1/1.
 - DAMAGES GATE: **GREEN**.
+
+## Purchase Orders verification — 2026-09-21
+
+- **BACKEND: COMPLETE.** The model/data contract preserves generated `PO-<sequence>` numbers through `Counter`, supplier/warehouse/product snapshots, line and order calculations, receiving fields, and the persisted future-GRN reference boundary without Stock mutation.
+- **API: COMPLETE.** Source-backed create/update validation, read access, role authorization, list filters/pagination/population, detail behavior, editable `draft`/`pending_approval` restrictions, update recalculation, approve/sent/cancel/close lifecycle transitions, and draft-only soft delete are verified.
+- **FRONTEND: COMPLETE.** The data layer preserves original endpoints, query keys, detail enablement, previous data, mutation feedback, and invalidation. The register preserves filters/pagination, role/status action visibility, table states, and receipt progress. Create/edit preserve header and line fields, product defaults, calculations, validation, hydration, and payloads. Detail preserves snapshots, amounts, receipt progress, status actions, confirmations, and feedback.
+- **Parity defects fixed during verification:** detail no longer throws while the GRN model is not yet migrated (and still populates GRNs when registered); original create/update Zod validation restored; update-time product snapshot enrichment restored; register receipt-progress bar restored; create/draft controls disabled until supplier, warehouse, and one line are present; delivery address, other charges, and shipping terms restored on detail.
+- **PO suites: PASS.** Backend/API 11/11; frontend 4/4.
+- **Cross-module regression evidence:** stock service 1/1, stock API/rollback 7/7 (isolated replica set), damages backend/API 6/6 and frontend 1/1, supplier backend 8/8 and frontend 4/4, product backend 9/9, page/data 3/3, and form/modal 4/4, warehouse backend 11/11 and frontend 2/2.
+- **Engineering checks:** `npm run lint` passed with 0 errors and 0 warnings; `npm run build` passed; `git diff --check` passed with no whitespace errors.
+- **Final gate status:** **RED — unrelated existing Stock frontend suite is 2/3.** Its `Enter Opening Stock` assertion fails in `tests/stock-frontend.test.mjs`; PO work did not touch Stock code. Purchase Orders themselves are complete, and GRN remains unstarted.
 
 - **Receipt/Print:** after Phase 3 Invoice, specifically `GET /invoices/:id` and the original `GET /invoices/:id/print-json` contract.
 - **Dashboard:** after Phase 5 Reports and all data sources actually queried by `DashboardPage`/dashboard reports: sales/orders, invoice revenue/receivables, stock/low stock, payment/cash flow, purchase/GRN, production, and report aggregates.
