@@ -41,11 +41,13 @@ export default function PurchaseOrderForm({ purchaseOrderId }) {
   const updateMutation = useUpdatePurchaseOrder();
   const po = existingData?.data;
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Edit form hydration is intentionally driven by the asynchronous PO query. */
   useEffect(() => {
     if (!po) return;
     setHeader({ supplierId: po.supplierId?._id || po.supplierId || "", warehouseId: po.deliverTo?.warehouseId?._id || po.deliverTo?.warehouseId || "", poDate: formatDate(po.poDate), expectedDeliveryDate: formatDate(po.expectedDeliveryDate), shippingTerms: po.shippingTerms || "", shippingCost: po.shippingCost || 0, otherCharges: po.otherCharges || 0, notes: po.notes || "", internalNotes: po.internalNotes || "" });
     setItems(po.items.map((item) => ({ productId: item.productId?._id || item.productId, orderedQuantity: item.orderedQuantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent || 0, discountAmount: item.discountAmount || 0, taxRate: item.taxRate || 0, taxable: item.taxable ?? true })));
   }, [po]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const suppliers = suppliersData?.data || [];
   const products = productsData?.data || [];

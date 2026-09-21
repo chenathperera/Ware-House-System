@@ -45,9 +45,9 @@ test("Stock overview and movement history preserve source cards, filters, column
     "Unit Cost",
     "Stock Value",
     "No stock data",
-    "Enter Opening Stock",
   ])
     assert.ok(stock.includes(value), `Missing ${value}`);
+  assert.match(stock, /Enter Opening\s+Stock/);
   assert.match(stock, /\["admin", "manager", "warehouse_staff"\]/);
   assert.match(stock, /Pagination/);
   for (const value of [

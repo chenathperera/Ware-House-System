@@ -125,9 +125,9 @@ Stock must come first because original `stockController` owns the only shared in
 - **FRONTEND: COMPLETE.** The data layer preserves original endpoints, query keys, detail enablement, previous data, mutation feedback, and invalidation. The register preserves filters/pagination, role/status action visibility, table states, and receipt progress. Create/edit preserve header and line fields, product defaults, calculations, validation, hydration, and payloads. Detail preserves snapshots, amounts, receipt progress, status actions, confirmations, and feedback.
 - **Parity defects fixed during verification:** detail no longer throws while the GRN model is not yet migrated (and still populates GRNs when registered); original create/update Zod validation restored; update-time product snapshot enrichment restored; register receipt-progress bar restored; create/draft controls disabled until supplier, warehouse, and one line are present; delivery address, other charges, and shipping terms restored on detail.
 - **PO suites: PASS.** Backend/API 11/11; frontend 4/4.
-- **Cross-module regression evidence:** stock service 1/1, stock API/rollback 7/7 (isolated replica set), damages backend/API 6/6 and frontend 1/1, supplier backend 8/8 and frontend 4/4, product backend 9/9, page/data 3/3, and form/modal 4/4, warehouse backend 11/11 and frontend 2/2.
+- **Cross-module regression evidence:** stock service 1/1, stock API/rollback 7/7 (isolated replica set), and stock frontend 3/3; damages backend/API 6/6 and frontend 1/1; supplier backend 8/8 and frontend 4/4; product backend 9/9, page/data 3/3, and form/modal 4/4; warehouse backend 11/11 and frontend 2/2.
 - **Engineering checks:** `npm run lint` passed with 0 errors and 0 warnings; `npm run build` passed; `git diff --check` passed with no whitespace errors.
-- **Final gate status:** **RED — unrelated existing Stock frontend suite is 2/3.** Its `Enter Opening Stock` assertion fails in `tests/stock-frontend.test.mjs`; PO work did not touch Stock code. Purchase Orders themselves are complete, and GRN remains unstarted.
+- **Final gate status:** **GREEN.** The stale Stock frontend static-text assertion now accepts JSX whitespace while still verifying the original “Enter Opening Stock” action. Purchase Orders are complete, and GRN remains unstarted.
 
 - **Receipt/Print:** after Phase 3 Invoice, specifically `GET /invoices/:id` and the original `GET /invoices/:id/print-json` contract.
 - **Dashboard:** after Phase 5 Reports and all data sources actually queried by `DashboardPage`/dashboard reports: sales/orders, invoice revenue/receivables, stock/low stock, payment/cash flow, purchase/GRN, production, and report aggregates.
@@ -154,3 +154,27 @@ Stock must come first because original `stockController` owns the only shared in
 - Stock frontend tests: **PASS** — 3/3 source-derived data-layer/page/form workflow checks.
 - Stock full regression: **PASS** — stock service 1/1, stock API/rollback 7/7, product backend 9/9, warehouse backend 11/11, stock frontend 3/3; prior product and warehouse frontend parity suites remain green.
 - Overall Stock Foundation gate: **GREEN** — no Stock blockers remain. This unlocks downstream Damages, Purchase Orders, GRN, Sales Orders, Invoice, returns and Production in dependency order; none are started by this checkpoint.
+# GRN backend/data checkpoint (2026-09-21)
+
+Status: backend/data parity implemented; frontend intentionally remains unmigrated.
+
+- Source contract: `GoodsReceiptNote` receives goods on `POST /grns` in a MongoDB transaction. The only source endpoints are list, detail, create, and cancellation through `DELETE /grns/:id`.
+- Data/Counter: GRNs use `GRN-<sequence>` from Counter key `grn`; the model preserves source line snapshots, receipts, discounts, quality fields, totals, audit fields, indexes, and `deletedAt` find middleware.
+- Validation/auth: source Zod contract and role matrix are preserved: authenticated reads; `admin`, `manager`, and `warehouse_staff` create; `admin` and `manager` cancel.
+- PO/Stock: receive appends the GRN to the PO, adds accepted quantity to its referenced PO lines, lets the PO hook recalculate pending/line/status/completion fields, updates warehouse/batch stock through the migrated stock service, creates `purchase_receipt` movements, and applies weighted-average/product purchase costing.
+- Partial/full receipt: multiple GRNs accumulate accepted quantity. The PO save hook moves `approved`/`sent`/`partially_received` POs to `partially_received` then `fully_received` exactly as the source does.
+- Rollback: dedicated replica-set API coverage proves a stock/product failure rolls back the GRN, PO, stock, and movements.
+- Preserved source quirks: source validation drops line `freeQuantity`, `discountPercent`, `discountAmount`, and `damagedQuantity` despite the model/controller accepting them; it does not enforce PO line membership or over-receipt. The source cancellation path is internally invalid: its StockMovement enum rejects `grn_cancellation`, and its GRN status enum omits `cancelled` (as do its cancellation audit schema fields). Cancellation therefore returns 400 and transaction rollback retains the received GRN, PO, and stock unchanged.
+- Test evidence: `npm run test:grns-api` with `MONGODB_URI=mongodb://127.0.0.1:27018/warehouse_system_grn_test?replicaSet=stockTestRs` covers authorization, validation, counter, snapshots, partial/full receiving, PO/stock/movement/cost results, reads, soft delete, and failure rollback.
+- Regression/build evidence: PO API (11), Stock service (1), Stock API (7, against its replica set), Supplier (8), Product (9), and Warehouse (11) pass. GRN-scoped and repository-wide ESLint pass with 0 errors and 0 warnings; production build and `git diff --check` pass. The transfer-line reset was moved into the source-warehouse change handler, and the asynchronous PO edit-form hydration retains a narrowly scoped lint rationale without changing its behavior.
+- Final gate status: **GREEN.** GRN backend/data parity is verified; frontend parity remains intentionally unstarted.
+
+## GRN frontend parity checkpoint (2026-09-21)
+
+- **Data layer:** `/api/grns` list/detail/create/cancel mappings, source query keys, detail enablement, previous list data, invalidation, and source feedback are implemented.
+- **Register:** `/grns` restores the source title, search, columns, badges, loading/empty states, pagination, direct-GRN action, and cancellation confirmation. The original register exposes cancellation for every non-cancelled record; backend authorization and its source-backed cancellation failure remain authoritative.
+- **Receiving:** direct receipt restores supplier/warehouse/product selection, quantity, price, free quantity, line/bill discount fields and displayed totals. PO receipt restores the source PO-driven supplier/warehouse and pending-line hydration, delivery/invoice/transport references, received/rejected/accepted, batch/expiry, discounts, and notes.
+- **PO integration:** source Receive Goods visibility (`admin`, `manager`, `warehouse_staff`; `approved`, `sent`, `partially_received`) is restored on PO detail. No Bills work was started.
+- **Validation/quirks:** source client validation and calculations are preserved; it does not add over-receipt prevention. The verified backend strips source-unsupported line fields and cancellation returns its intentional source 400, which the UI reports as cancellation failure.
+- **Tests:** GRN backend/API 7/7; GRN frontend 5/5; PO backend/API 11/11; Stock service 1/1; Stock API/rollback 7/7; Stock frontend 3/3. Full lint is clean, production build passes, and `git diff --check` passes.
+- **Final GRN gate:** **GREEN.**
