@@ -28,3 +28,5 @@ The original default-admin credentials are intentionally not migrated. `POST /ap
 ## Verification
 
 `tests/default-seeding.test.mjs` verifies fresh data, exact source defaults, idempotency, and preservation of a non-empty user-created collection. Existing UOM and Product backend/frontend regression suites verify the UOM API and Product consumer contract.
+
+Final verification on 2026-09-22 passed: default-seeding 3/3, UOM API 10/10 (including all 16 source UOM records returned through authenticated `GET /api/uoms` after initialization), Product backend 9/9, Product page/data 3/3, and Product modal 4/4. Lint completed with zero errors, production build passed, and `git diff --check` passed. The first-user auth contract remains unchanged; its shared-database suite was deliberately not run because it refuses to mutate a database that already contains a user.

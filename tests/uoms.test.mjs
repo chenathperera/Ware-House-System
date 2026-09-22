@@ -6,6 +6,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import mongoose from "mongoose";
 import User from "../src/server/models/User.js";
 import UnitOfMeasure from "../src/server/models/UnitOfMeasure.js";
+import { defaultUoms } from "../src/server/bootstrap/seed-defaults.js";
 
 const approvedURI = "mongodb://127.0.0.1:27017/warehouse_system_next";
 const run = randomUUID();
@@ -144,6 +145,18 @@ test("uoms module contract against the isolated local database", { timeout: 2400
   adminToken = status(await login(admin.email), 200).token;
   managerToken = status(await login(manager.email), 200).token;
   staffToken = status(await login(staff.email), 200).token;
+
+  await t.test("source default UOMs initialize before authenticated API work", async () => {
+    const listed = await get("/uoms", staffToken);
+    const uoms = status(listed, 200);
+    assert.deepEqual(
+      uoms
+        .filter((uom) => defaultUoms.some((expected) => expected.name === uom.name))
+        .sort((left, right) => left.name.localeCompare(right.name))
+        .map(({ name, symbol, type }) => ({ name, symbol, type })),
+      [...defaultUoms].sort((left, right) => left.name.localeCompare(right.name)),
+    );
+  });
 
   const uomName = `Synthetic UOM ${shortRun}`;
   const uomSymbol = `su${shortRun.slice(0, 6)}`;
