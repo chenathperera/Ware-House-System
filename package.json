@@ -28,6 +28,8 @@
     "test:purchase-orders-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/purchase-orders-api.test.mjs",
     "test:grns-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/grns-api.test.mjs",
     "test:grn-frontend": "node --test tests/grn-frontend.test.mjs",
+    "test:bills-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/bills-api.test.mjs",
+    "test:bills-frontend": "node --test tests/bills-frontend.test.mjs",
     "test:customer-groups": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/customer-groups.test.mjs",
     "test:customers": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/customers.test.mjs",
     "test:suppliers": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 tests/suppliers.test.mjs",

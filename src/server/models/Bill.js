@@ -1,0 +1,138 @@
+import "server-only";
+import mongoose from "mongoose";
+import { getNextSequence } from "./Counter.js";
+
+const billLineItemSchema = new mongoose.Schema(
+  {
+    lineNumber: Number,
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+    productCode: String,
+    productName: String,
+    description: String,
+    quantity: { type: Number, required: true, min: 0.01 },
+    unitOfMeasure: String,
+    unitPrice: { type: Number, required: true, min: 0 },
+    discountPercent: { type: Number, default: 0 },
+    discountAmount: { type: Number, default: 0 },
+    taxRate: { type: Number, default: 0 },
+    taxAmount: { type: Number, default: 0 },
+    taxable: { type: Boolean, default: true },
+    lineSubtotal: { type: Number, default: 0 },
+    lineDiscount: { type: Number, default: 0 },
+    lineTax: { type: Number, default: 0 },
+    lineTotal: { type: Number, default: 0 },
+    grnLineItemId: mongoose.Schema.Types.ObjectId,
+    notes: String,
+  },
+  { _id: true },
+);
+
+const billSchema = new mongoose.Schema(
+  {
+    billNumber: { type: String, unique: true, trim: true, uppercase: true },
+    supplierInvoiceNumber: { type: String, trim: true },
+    supplierId: { type: mongoose.Schema.Types.ObjectId, ref: "Supplier", required: true },
+    supplierSnapshot: { name: String, code: String, taxRegistrationNumber: String },
+    purchaseOrderIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "PurchaseOrder" }],
+    purchaseOrderNumbers: [String],
+    grnIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "GoodsReceiptNote" }],
+    grnNumbers: [String],
+    billDate: { type: Date, default: Date.now },
+    dueDate: Date,
+    receivedDate: { type: Date, default: Date.now },
+    currency: { type: String, default: "LKR" },
+    items: [billLineItemSchema],
+    subtotal: { type: Number, default: 0 },
+    totalDiscount: { type: Number, default: 0 },
+    globalDiscountPercent: { type: Number, default: 0 },
+    globalDiscountAmount: { type: Number, default: 0 },
+    totalTax: { type: Number, default: 0 },
+    shippingCost: { type: Number, default: 0 },
+    otherCharges: { type: Number, default: 0 },
+    grandTotal: { type: Number, default: 0 },
+    paymentTerms: {
+      type: { type: String, enum: ["advance", "cod", "credit", "consignment"] },
+      creditDays: Number,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "partially_paid", "paid", "overdue", "cancelled", "disputed"],
+      default: "unpaid",
+    },
+    amountPaid: { type: Number, default: 0 },
+    balanceDue: { type: Number, default: 0 },
+    lastPaymentDate: Date,
+    fullyPaidAt: Date,
+    daysOutstanding: { type: Number, default: 0 },
+    daysPastDue: { type: Number, default: 0 },
+    agingBucket: { type: String, enum: ["current", "1_30", "31_60", "61_90", "91_plus"], default: "current" },
+    status: { type: String, enum: ["draft", "approved", "paid", "cancelled", "disputed"], default: "approved" },
+    disputeReason: String,
+    notes: String,
+    internalNotes: String,
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    approvedAt: Date,
+    cancelledAt: Date,
+    cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    cancellationReason: String,
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    deletedAt: { type: Date, default: null },
+  },
+  { timestamps: true },
+);
+
+billSchema.index({ supplierId: 1, billDate: -1 });
+billSchema.index({ paymentStatus: 1, dueDate: 1 });
+billSchema.index({ agingBucket: 1 });
+billSchema.index({ deletedAt: 1, billDate: 1 });
+
+billSchema.pre("save", async function () {
+  if (this.isNew && !this.billNumber) this.billNumber = `BILL-${await getNextSequence("bill")}`;
+
+  this.items.forEach((item, index) => {
+    item.lineNumber = index + 1;
+    item.lineSubtotal = +(item.quantity * item.unitPrice).toFixed(2);
+    const discountFromPercent = item.lineSubtotal * (item.discountPercent || 0) / 100;
+    item.lineDiscount = +(discountFromPercent + (item.discountAmount || 0)).toFixed(2);
+    const taxable = item.lineSubtotal - item.lineDiscount;
+    item.lineTax = item.taxable ? +(taxable * (item.taxRate || 0) / 100).toFixed(2) : 0;
+    item.taxAmount = item.lineTax;
+    item.lineTotal = +(taxable + item.lineTax).toFixed(2);
+  });
+
+  this.subtotal = +this.items.reduce((sum, item) => sum + item.lineSubtotal, 0).toFixed(2);
+  const lineDiscounts = this.items.reduce((sum, item) => sum + item.lineDiscount, 0);
+  const globalDiscount = this.globalDiscountAmount || this.subtotal * (this.globalDiscountPercent || 0) / 100;
+  this.totalDiscount = +(lineDiscounts + globalDiscount).toFixed(2);
+  this.totalTax = +this.items.reduce((sum, item) => sum + item.lineTax, 0).toFixed(2);
+  this.grandTotal = +(this.subtotal - this.totalDiscount + this.totalTax + (this.shippingCost || 0) + (this.otherCharges || 0)).toFixed(2);
+  this.balanceDue = +(this.grandTotal - (this.amountPaid || 0)).toFixed(2);
+
+  if (this.amountPaid >= this.grandTotal && this.grandTotal > 0) {
+    this.paymentStatus = "paid";
+    if (!this.fullyPaidAt) this.fullyPaidAt = new Date();
+  } else if (this.amountPaid > 0) {
+    this.paymentStatus = "partially_paid";
+  } else if (!["cancelled", "disputed"].includes(this.paymentStatus)) {
+    this.paymentStatus = "unpaid";
+  }
+
+  if (this.dueDate && !["paid", "cancelled"].includes(this.paymentStatus)) {
+    const daysPast = Math.floor((new Date() - new Date(this.dueDate)) / (1000 * 60 * 60 * 24));
+    this.daysPastDue = Math.max(0, daysPast);
+    if (this.daysPastDue > 0 && this.paymentStatus === "unpaid") this.paymentStatus = "overdue";
+    if (this.daysPastDue === 0) this.agingBucket = "current";
+    else if (this.daysPastDue <= 30) this.agingBucket = "1_30";
+    else if (this.daysPastDue <= 60) this.agingBucket = "31_60";
+    else if (this.daysPastDue <= 90) this.agingBucket = "61_90";
+    else this.agingBucket = "91_plus";
+  }
+  if (this.billDate) this.daysOutstanding = Math.floor((Date.now() - new Date(this.billDate)) / (1000 * 60 * 60 * 24));
+});
+
+billSchema.pre(/^find/, function (next) {
+  if (!this.getOptions || !this.getOptions().includeDeleted) this.where({ deletedAt: null });
+  if (typeof next === "function") next();
+});
+
+export default mongoose.models.Bill || mongoose.model("Bill", billSchema);
