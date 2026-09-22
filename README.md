@@ -7,14 +7,16 @@ Warehouse System. The original application remains in the sibling
 ## Local setup
 
 1. Run `npm install`.
-2. Ensure `.env.local` contains local development values for `MONGODB_URI`,
-   `JWT_SECRET`, and `JWT_EXPIRES_IN`. Use `.env.example` as the safe template.
+2. Configure the local MongoDB service as the single-node replica set documented
+   in `migration-docs/06-transaction-capable-development-mongodb.md`, then ensure
+   `.env.local` contains local development values for `MONGODB_URI`, `JWT_SECRET`,
+   and `JWT_EXPIRES_IN`. Use `.env.example` as the safe template.
 3. Run `npm run dev` and open the displayed local URL.
 
 Use only the local migration database at
-`mongodb://127.0.0.1:27017/warehouse_system_next`. Never point local work at a
-production database. `.env.local` is ignored by Git; `.env.example` contains
-only safe placeholder values.
+`mongodb://127.0.0.1:27017/warehouse_system_next?replicaSet=erpDevRs`. Never
+point local work at a production database. `.env.local` is ignored by Git;
+`.env.example` contains only safe placeholder values.
 
 ## Commands
 
