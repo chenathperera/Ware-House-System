@@ -1,5 +1,6 @@
 import "server-only";
 import { connectMongoDB } from "../db/mongoose.js";
+import { initializeDefaultData } from "../bootstrap/seed-defaults.js";
 import User from "../models/User.js";
 import { protect, authorize } from "../auth/guards.js";
 import { limitAuth } from "../auth/rateLimit.js";
@@ -28,6 +29,7 @@ export function apiHandler(
       };
       if (authLimit && (await limitAuth(req, res))) return res.response;
       await connectMongoDB();
+      await initializeDefaultData();
       if (registration) {
         if ((await User.countDocuments()) !== 0) {
           // The original route runs protect before validation and the controller
