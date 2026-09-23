@@ -1,0 +1,26 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import mongoose from "mongoose";
+import SupplierReturn from "../src/server/models/SupplierReturn.js";
+import Supplier from "../src/server/models/Supplier.js";
+import Product from "../src/server/models/Product.js";
+import Warehouse from "../src/server/models/Warehouse.js";
+import StockItem from "../src/server/models/StockItem.js";
+import StockMovement from "../src/server/models/StockMovement.js";
+import User from "../src/server/models/User.js";
+import { createSupplierReturn, recordSupplierCredit, sendSupplierReturn } from "../src/server/services/supplierReturnApiService.js";
+const uri = "mongodb://127.0.0.1:27018/warehouse_system_supplier_return_test?replicaSet=stockTestRs";
+const res = () => ({ statusCode: 200, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; } });
+test("Supplier Return source transaction contract", async (t) => {
+  assert.equal(process.env.MONGODB_URI, uri); await mongoose.connect(uri);
+  const suffix = new mongoose.Types.ObjectId().toString().slice(-8); const created = { returns: [], suppliers: [], products: [], warehouses: [], users: [] };
+  const add = (key, item) => (created[key].push(item._id), item);
+  t.after(async () => { try { await SupplierReturn.collection.deleteMany({ _id: { $in: created.returns } }); await Supplier.collection.deleteMany({ _id: { $in: created.suppliers } }); await Product.collection.deleteMany({ _id: { $in: created.products } }); await Warehouse.collection.deleteMany({ _id: { $in: created.warehouses } }); await User.collection.deleteMany({ _id: { $in: created.users } }); } finally { await mongoose.disconnect(); } });
+  const user = add("users", await User.create({ firstName: "R", lastName: "U", email: `sr-${suffix}@x.test`, password: "Password9!", role: "admin" })); const supplier = add("suppliers", await Supplier.create({ displayName: `S ${suffix}`, supplierCode: `S${suffix}` })); const warehouse = add("warehouses", await Warehouse.create({ name: `W ${suffix}`, warehouseCode: `W${suffix}`.toUpperCase() })); const product = add("products", await Product.create({ name: `P ${suffix}`, categoryId: new mongoose.Types.ObjectId(), unitOfMeasure: "pc", basePrice: 1 })); const empty = add("products", await Product.create({ name: `E ${suffix}`, categoryId: new mongoose.Types.ObjectId(), unitOfMeasure: "pc", basePrice: 1 })); const stock = await StockItem.create({ productId: product._id, warehouseId: warehouse._id, batchNumber: null, unitOfMeasure: "pc", costPerUnit: 10, quantities: { onHand: 5, reserved: 0 } });
+  const make = async (items, extra = {}) => { const response = res(); await createSupplierReturn({ body: { supplierId: String(supplier._id), warehouseId: String(warehouse._id), items, ...extra }, user }, response); created.returns.push(response.body.data._id); return response.body.data; };
+  const draft = await make([{ productId: String(product._id), quantity: 2, unitPrice: 10, reason: "damaged", grnId: new mongoose.Types.ObjectId().toString(), poId: new mongoose.Types.ObjectId().toString() }], { expectedCreditAmount: 0 }); assert.equal((await StockItem.findById(stock._id)).quantities.onHand, 5); assert.equal(draft.expectedCreditAmount, 20); assert.match(draft.returnNumber, /^SRT-/);
+  const sent = res(); await sendSupplierReturn({ params: { id: draft._id }, user }, sent); const stored = await SupplierReturn.findById(draft._id); assert.equal(stored.status, "sent"); assert.equal((await StockItem.findById(stock._id)).quantities.onHand, 3); const movement = await StockMovement.findById(stored.items[0].stockMovementId); assert.equal(movement.movementType, "supplier_return"); assert.equal(movement.sourceDocument.number, stored.returnNumber); assert.equal(movement.batchNumber, null);
+  const credit = res(); await recordSupplierCredit({ params: { id: draft._id }, body: { actualCreditReceived: 5, creditReferenceNumber: "CN", creditReceivedDate: "2026-09-23" }, user }, credit); assert.equal(credit.body.data.status, "credit_received");
+  const approved = await make([{ productId: String(product._id), quantity: 1, unitPrice: 10, reason: "other" }], { status: "approved" }); await sendSupplierReturn({ params: { id: approved._id }, user }, res()); assert.equal((await SupplierReturn.findById(approved._id)).status, "sent");
+  const rollback = await make([{ productId: String(product._id), quantity: 1, unitPrice: 10, reason: "damaged" }, { productId: String(empty._id), quantity: 1, unitPrice: 10, reason: "damaged" }]); const before = (await StockItem.findById(stock._id)).quantities.onHand; await assert.rejects(() => sendSupplierReturn({ params: { id: rollback._id }, user }, res()), /No stock found/); assert.equal((await StockItem.findById(stock._id)).quantities.onHand, before); assert.equal((await SupplierReturn.findById(rollback._id)).status, "draft");
+});
