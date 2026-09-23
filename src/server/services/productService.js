@@ -1,5 +1,7 @@
 import "server-only";
 import mongoose from "mongoose";
+import "../models/Brand.js";
+import "../models/Category.js";
 import Product from "../models/Product.js";
 import "../models/Warehouse.js";
 import "../models/StockItem.js";
