@@ -1,8 +1,20 @@
 import api from "../../api/axios.js";
 
 export const paymentsApi = {
-  list: async (params = {}) => (await api.get("/payments", { params })).data,
-  getById: async (id) => (await api.get(`/payments/${id}`)).data,
-  create: async (data) => (await api.post("/payments", data)).data,
-  remove: async (id) => (await api.delete(`/payments/${id}`)).data,
+  list: async (params = {}) => {
+    const response = await api.get("/payments", { params });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/payments/${id}`);
+    return response.data;
+  },
+  create: async (data) => {
+    const response = await api.post("/payments", data);
+    return response.data;
+  },
+  remove: async (id) => {
+    const response = await api.delete(`/payments/${id}`);
+    return response.data;
+  },
 };

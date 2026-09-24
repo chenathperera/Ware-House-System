@@ -45,7 +45,7 @@ const menuItems = [
       ["Sales Orders", "/sales-orders"],
       ["Wholesale Prices", "/wholesale-prices"],
       ["Invoices", "/invoices"],
-      ["Payments Received", "/payments"],
+      
       ["Customer Returns", "/returns"],
       ["Repairs Workshop", "/repairs"],
     ],
@@ -80,17 +80,18 @@ const menuItems = [
     ],
   },
   {
-    label: "Finance",
-    id: "finance",
-    icon: Landmark,
-    children: [
-      ["Bank Accounts", "/bank-accounts"],
-      ["Expenses", "/expenses"],
-      ["Fund Transfers", "/fund-transfers"],
-      ["Cheque Registry", "/cheques"],
-      ["Credit Notes", "/credit-notes"],
-    ],
-  },
+  label: "Finance",
+  id: "finance",
+  icon: Landmark,
+  children: [
+    ["Bank Accounts", "/bank-accounts"],
+    ["Payments", "/payments"],
+    ["Expenses", "/expenses"],
+    ["Fund Transfers", "/fund-transfers"],
+    ["Cheque Registry", "/cheques"],
+    ["Credit Notes", "/credit-notes"],
+  ],
+},
   {
     label: "Manufacturing",
     id: "production",
