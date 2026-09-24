@@ -40,7 +40,9 @@
     "test:product-page-data": "node --test tests/product-page-data.test.mjs",
     "test:product-modal": "node --test tests/product-modal.test.mjs",
     "test:expenses-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/expenses-api.test.mjs",
-    "test:expenses-frontend": "node --test tests/expenses-frontend.test.mjs"
+    "test:expenses-frontend": "node --test tests/expenses-frontend.test.mjs",
+    "test:fund-transfers-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/fund-transfers-api.test.mjs",
+    "test:fund-transfers-frontend": "node --test tests/fund-transfers-frontend.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
