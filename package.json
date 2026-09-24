@@ -38,7 +38,9 @@
     "test:customer-frontend": "node --conditions=react-server --test tests/customer-frontend.test.mjs",
     "test:supplier-frontend": "node --conditions=react-server --test tests/supplier-frontend.test.mjs",
     "test:product-page-data": "node --test tests/product-page-data.test.mjs",
-    "test:product-modal": "node --test tests/product-modal.test.mjs"
+    "test:product-modal": "node --test tests/product-modal.test.mjs",
+    "test:expenses-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/expenses-api.test.mjs",
+    "test:expenses-frontend": "node --test tests/expenses-frontend.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
