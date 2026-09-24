@@ -96,13 +96,14 @@ export default function ReceiptPrintPage() {
         </button>
       </div>
 
-      <main className="mx-auto mt-16 w-[80mm] bg-white p-3 font-mono text-[13px] text-black">
+      <main className="receipt-wrapper print-thermal-container mx-auto mt-16 w-[80mm] bg-white p-3 font-mono text-[13px] text-black">
         <header className="mb-3 text-center">
           <h1 className="text-[17px] font-black uppercase">
             {settings.companyName || "YOUR COMPANY NAME"}
           </h1>
           {settings.address && <p>{settings.address}</p>}
           {settings.phone && <p>TEL: {settings.phone}</p>}
+          {settings.email && <p>{settings.email}</p>}
           {settings.taxRegistrationNumber && (
             <p>VAT NO: {settings.taxRegistrationNumber}</p>
           )}

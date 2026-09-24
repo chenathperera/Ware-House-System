@@ -14,30 +14,70 @@ const addressSnapshotSchema = new mongoose.Schema(
   },
   { _id: false },
 );
-const lineSchema = new mongoose.Schema({
-  lineNumber: Number,
-  productId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Product",
+const lineSchema = new mongoose.Schema(
+  {
+    lineNumber: Number,
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    },
+    productCode: String,
+    productName: String,
+    description: String,
+    quantity: {
+      type: Number,
+      required: true,
+      min: 0.01,
+    },
+    unitOfMeasure: String,
+    unitPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    discountPercent: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
+    taxRate: {
+      type: Number,
+      default: 0,
+    },
+    taxAmount: {
+      type: Number,
+      default: 0,
+    },
+    taxable: {
+      type: Boolean,
+      default: true,
+    },
+    lineSubtotal: {
+      type: Number,
+      default: 0,
+    },
+    lineDiscount: {
+      type: Number,
+      default: 0,
+    },
+    lineTax: {
+      type: Number,
+      default: 0,
+    },
+    lineTotal: {
+      type: Number,
+      default: 0,
+    },
+    salesOrderLineId: mongoose.Schema.Types.ObjectId,
+    notes: String,
   },
-  productCode: String,
-  productName: String,
-  description: String,
-  quantity: { type: Number, required: true, min: 0.01 },
-  unitOfMeasure: String,
-  unitPrice: { type: Number, required: true, min: 0 },
-  discountPercent: { type: Number, default: 0, min: 0, max: 100 },
-  discountAmount: { type: Number, default: 0 },
-  taxRate: { type: Number, default: 0 },
-  taxAmount: { type: Number, default: 0 },
-  taxable: { type: Boolean, default: true },
-  lineSubtotal: { type: Number, default: 0 },
-  lineDiscount: { type: Number, default: 0 },
-  lineTax: { type: Number, default: 0 },
-  lineTotal: { type: Number, default: 0 },
-  salesOrderLineId: mongoose.Schema.Types.ObjectId,
-  notes: String,
-}, { _id: true });
+  { _id: true },
+);
 
 const invoiceSchema = new mongoose.Schema(
   {
@@ -66,24 +106,56 @@ const invoiceSchema = new mongoose.Schema(
     },
     billingAddress: addressSnapshotSchema,
     shippingAddress: addressSnapshotSchema,
-    salesOrderIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "SalesOrder" }],
+    salesOrderIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "SalesOrder",
+      },
+    ],
     salesOrderNumbers: [String],
-    invoiceDate: { type: Date, default: Date.now },
+    invoiceDate: {
+      type: Date,
+      default: Date.now,
+    },
     dueDate: Date,
-    currency: { type: String, default: "LKR" },
-    salesRepId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    currency: {
+      type: String,
+      default: "LKR",
+    },
+    salesRepId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     items: [lineSchema],
-    subtotal: { type: Number, default: 0 },
-    totalDiscount: { type: Number, default: 0 },
+    subtotal: {
+      type: Number,
+      default: 0,
+    },
+    totalDiscount: {
+      type: Number,
+      default: 0,
+    },
     orderDiscount: {
       type: { type: String, enum: ["percentage", "fixed"] },
       value: Number,
       amount: Number,
     },
-    totalTax: { type: Number, default: 0 },
-    shippingCost: { type: Number, default: 0 },
-    otherCharges: { type: Number, default: 0 },
-    grandTotal: { type: Number, default: 0 },
+    totalTax: {
+      type: Number,
+      default: 0,
+    },
+    shippingCost: {
+      type: Number,
+      default: 0,
+    },
+    otherCharges: {
+      type: Number,
+      default: 0,
+    },
+    grandTotal: {
+      type: Number,
+      default: 0,
+    },
     taxBreakdown: [
       {
         taxName: String,
@@ -101,12 +173,24 @@ const invoiceSchema = new mongoose.Schema(
       enum: ["unpaid", "partially_paid", "paid", "overdue", "cancelled", "written_off"],
       default: "unpaid",
     },
-    amountPaid: { type: Number, default: 0 },
-    balanceDue: { type: Number, default: 0 },
+    amountPaid: {
+      type: Number,
+      default: 0,
+    },
+    balanceDue: {
+      type: Number,
+      default: 0,
+    },
     lastPaymentDate: Date,
     fullyPaidAt: Date,
-    daysOutstanding: { type: Number, default: 0 },
-    daysPastDue: { type: Number, default: 0 },
+    daysOutstanding: {
+      type: Number,
+      default: 0,
+    },
+    daysPastDue: {
+      type: Number,
+      default: 0,
+    },
     agingBucket: {
       type: String,
       enum: ["current", "1_30", "31_60", "61_90", "91_plus"],
@@ -121,7 +205,10 @@ const invoiceSchema = new mongoose.Schema(
     sentVia: String,
     viewedAt: Date,
     cancelledAt: Date,
-    cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    cancelledBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     cancellationReason: String,
     cashReceived: Number,
     changeReturned: Number,
@@ -129,9 +216,18 @@ const invoiceSchema = new mongoose.Schema(
     internalNotes: String,
     paymentInstructions: String,
     termsAndConditions: String,
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    deletedAt: { type: Date, default: null },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true },
 );
@@ -144,19 +240,35 @@ invoiceSchema.pre("save", async function () {
   if (this.isNew && !this.invoiceNumber) {
     this.invoiceNumber = `INV-${await getNextSequence("invoice")}`;
   }
+
   this.items.forEach((item, index) => {
     item.lineNumber = index + 1;
     item.lineSubtotal = +(item.quantity * item.unitPrice).toFixed(2);
-    const percent = item.lineSubtotal * (item.discountPercent || 0) / 100;
-    item.lineDiscount = +(percent + (item.discountAmount || 0)).toFixed(2);
-    const taxable = item.lineSubtotal - item.lineDiscount;
-    item.lineTax = item.taxable ? +(taxable * (item.taxRate || 0) / 100).toFixed(2) : 0;
+
+    const percentageDiscount =
+      (item.lineSubtotal * (item.discountPercent || 0)) / 100;
+    item.lineDiscount = +(
+      percentageDiscount + (item.discountAmount || 0)
+    ).toFixed(2);
+
+    const taxableAmount = item.lineSubtotal - item.lineDiscount;
+    item.lineTax = item.taxable
+      ? +(taxableAmount * (item.taxRate || 0) / 100).toFixed(2)
+      : 0;
     item.taxAmount = item.lineTax;
-    item.lineTotal = +(taxable + item.lineTax).toFixed(2);
+    item.lineTotal = +(taxableAmount + item.lineTax).toFixed(2);
   });
-  this.subtotal = +this.items.reduce((sum, item) => sum + item.lineSubtotal, 0).toFixed(2);
-  this.totalDiscount = +this.items.reduce((sum, item) => sum + item.lineDiscount, 0).toFixed(2);
-  this.totalTax = +this.items.reduce((sum, item) => sum + item.lineTax, 0).toFixed(2);
+
+  this.subtotal = +this.items
+    .reduce((sum, item) => sum + item.lineSubtotal, 0)
+    .toFixed(2);
+  this.totalDiscount = +this.items
+    .reduce((sum, item) => sum + item.lineDiscount, 0)
+    .toFixed(2);
+  this.totalTax = +this.items
+    .reduce((sum, item) => sum + item.lineTax, 0)
+    .toFixed(2);
+
   let orderDiscount = 0;
   if (this.orderDiscount?.type === "percentage") {
     orderDiscount = +(
@@ -167,7 +279,11 @@ invoiceSchema.pre("save", async function () {
   } else if (this.orderDiscount?.type === "fixed") {
     orderDiscount = this.orderDiscount.value || 0;
   }
-  if (this.orderDiscount) this.orderDiscount.amount = orderDiscount;
+
+  if (this.orderDiscount) {
+    this.orderDiscount.amount = orderDiscount;
+  }
+
   this.grandTotal = +(
     this.subtotal -
     this.totalDiscount -
@@ -177,9 +293,12 @@ invoiceSchema.pre("save", async function () {
     (this.otherCharges || 0)
   ).toFixed(2);
   this.balanceDue = +(this.grandTotal - (this.amountPaid || 0)).toFixed(2);
+
   if (this.amountPaid >= this.grandTotal && this.grandTotal > 0) {
     this.paymentStatus = "paid";
-    if (!this.fullyPaidAt) this.fullyPaidAt = new Date();
+    if (!this.fullyPaidAt) {
+      this.fullyPaidAt = new Date();
+    }
   } else if (this.amountPaid > 0) {
     this.paymentStatus = "partially_paid";
   } else if (
@@ -188,24 +307,46 @@ invoiceSchema.pre("save", async function () {
   ) {
     this.paymentStatus = "unpaid";
   }
-  if (this.dueDate && this.paymentStatus !== "paid" && this.paymentStatus !== "cancelled") {
+
+  if (
+    this.dueDate &&
+    this.paymentStatus !== "paid" &&
+    this.paymentStatus !== "cancelled"
+  ) {
     this.daysPastDue = Math.max(
       0,
       Math.floor((new Date() - new Date(this.dueDate)) / 86400000),
     );
-    if (this.daysPastDue > 0 && this.paymentStatus === "unpaid") this.paymentStatus = "overdue";
-    if (this.daysPastDue === 0) this.agingBucket = "current";
-    else if (this.daysPastDue <= 30) this.agingBucket = "1_30";
-    else if (this.daysPastDue <= 60) this.agingBucket = "31_60";
-    else if (this.daysPastDue <= 90) this.agingBucket = "61_90";
-    else this.agingBucket = "91_plus";
+    if (this.daysPastDue > 0 && this.paymentStatus === "unpaid") {
+      this.paymentStatus = "overdue";
+    }
+
+    if (this.daysPastDue === 0) {
+      this.agingBucket = "current";
+    } else if (this.daysPastDue <= 30) {
+      this.agingBucket = "1_30";
+    } else if (this.daysPastDue <= 60) {
+      this.agingBucket = "31_60";
+    } else if (this.daysPastDue <= 90) {
+      this.agingBucket = "61_90";
+    } else {
+      this.agingBucket = "91_plus";
+    }
   }
-  if (this.invoiceDate) this.daysOutstanding = Math.floor((Date.now() - new Date(this.invoiceDate)) / 86400000);
+
+  if (this.invoiceDate) {
+    this.daysOutstanding = Math.floor(
+      (Date.now() - new Date(this.invoiceDate)) / 86400000,
+    );
+  }
 });
 invoiceSchema.pre(/^find/, function (next) {
   if (!this.getOptions || !this.getOptions().includeDeleted) {
     this.where({ deletedAt: null });
   }
-  if (typeof next === "function") next();
+  if (typeof next === "function") {
+    next();
+  }
 });
+
 export default mongoose.models.Invoice || mongoose.model("Invoice", invoiceSchema);

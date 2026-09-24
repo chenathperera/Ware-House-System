@@ -8,6 +8,7 @@ import Button from "../../../components/ui/Button.jsx";
 import Card from "../../../components/ui/Card.jsx";
 import Input from "../../../components/ui/Input.jsx";
 import PageHeader from "../../../components/ui/PageHeader.jsx";
+import Pagination from "../../../components/ui/Pagination.jsx";
 import Select from "../../../components/ui/Select.jsx";
 import Table from "../../../components/ui/Table.jsx";
 import { useInvoices } from "../../../client/features/invoices/useInvoices.js";
@@ -51,7 +52,29 @@ export default function InvoicesPage() {
           <Input placeholder="Search invoices..." value={filters.search} onChange={(event) => updateFilter("search", event.target.value)} />
           <Select placeholder="All Payment Statuses" options={["unpaid", "partially_paid", "paid", "overdue"].map((value) => ({ value, label: value.replace("_", " ") }))} value={filters.paymentStatus} onChange={(event) => updateFilter("paymentStatus", event.target.value)} />
         </div>
-        {isLoading ? <div className="py-16 text-center text-gray-500">Loading...</div> : invoices.length ? <Table columns={columns} data={invoices} /> : <div className="py-16 text-center"><Receipt className="mx-auto mb-3 text-gray-300" /><h3 className="font-semibold">No invoices</h3><p className="text-sm text-gray-500">Create a manual invoice to get started.</p></div>}
+      {isLoading ? (
+        <div className="py-16 text-center text-gray-500">Loading...</div>
+      ) : invoices.length ? (
+        <>
+          <Table columns={columns} data={invoices} />
+          <Pagination
+            page={filters.page}
+            totalPages={data?.totalPages || 1}
+            total={data?.total || 0}
+            onPageChange={(page) =>
+              setFilters((current) => ({ ...current, page }))
+            }
+          />
+        </>
+      ) : (
+        <div className="py-16 text-center">
+          <Receipt className="mx-auto mb-3 text-gray-300" />
+          <h3 className="font-semibold">No invoices</h3>
+          <p className="text-sm text-gray-500">
+            Create a manual invoice to get started.
+          </p>
+        </div>
+      )}
       </Card>
     </div>
   );

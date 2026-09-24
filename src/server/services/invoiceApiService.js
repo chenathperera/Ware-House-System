@@ -91,8 +91,7 @@ export async function createInvoice(req, res) {
   await updateCustomerBalance(customer._id);
 
   const populated = await Invoice.findById(invoice._id)
-    .populate("customerId", "displayName customerCode")
-    .populate("salesOrderIds", "orderNumber");
+    .populate("customerId", "displayName customerCode");
 
   res.status(201).json({ success: true, data: populated });
 }
@@ -144,7 +143,6 @@ export async function getInvoices(req, res) {
   const [data, total] = await Promise.all([
     Invoice.find(filter)
       .populate("customerId", "displayName customerCode")
-      .populate("salesOrderIds", "orderNumber")
       .sort(sort)
       .skip(skip)
       .limit(Number(limit)),
@@ -167,7 +165,6 @@ export async function getInvoiceById(req, res) {
       "customerId",
       "displayName customerCode taxRegistrationNumber primaryContact paymentTerms creditStatus",
     )
-    .populate("salesOrderIds", "orderNumber orderDate")
     .populate("salesRepId", "firstName lastName")
     .populate("createdBy", "firstName lastName")
     .populate("cancelledBy", "firstName lastName");
