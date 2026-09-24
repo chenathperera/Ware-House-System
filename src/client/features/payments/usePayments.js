@@ -36,14 +36,15 @@ export function useCreatePayment() {
 
     onSuccess: () => {
       invalidateQueries(queryClient, [
-  "payments",
-  "invoices",
-  "invoice",
-  "invoicesAging",
-  "bills",
-  "customers",
-  "dashboard",
-]);
+        "payments",
+        "invoices",
+        "invoice",
+        "invoicesAging",
+        "bills",
+        "customers",
+        "dashboard",
+        "cheques",
+      ]);
 
       toast.success("Payment recorded");
     },
@@ -62,14 +63,14 @@ export function useDeletePayment() {
 
     onSuccess: () => {
       invalidateQueries(queryClient, [
-  "payments",
-  "invoices",
-  "invoice",
-  "invoicesAging",
-  "bills",
-  "bank-accounts",
-  "cheques",
-]);
+        "payments",
+        "invoices",
+        "invoice",
+        "invoicesAging",
+        "bills",
+        "bank-accounts",
+        "cheques",
+      ]);
 
       toast.success("Payment deleted");
     },
