@@ -48,6 +48,8 @@
     ,"test:sales-orders-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/sales-orders-api.test.mjs"
     ,"test:sales-orders-frontend": "node --test tests/sales-orders-frontend.test.mjs"
     ,"test:repair-order-dependency": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/repair-order-dependency.test.mjs"
+    ,"test:repairs-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/repairs-api.test.mjs"
+    ,"test:repairs-frontend": "node --test tests/repairs-frontend.test.mjs"
     ,"test:customer-returns-api": "node --conditions=react-server --test --test-concurrency=1 --test-force-exit tests/customer-returns-api.test.mjs"
     ,"test:customer-returns-frontend": "node --test tests/customer-returns-frontend.test.mjs"
     ,"test:credit-notes-frontend": "node --test tests/credit-notes-frontend.test.mjs"

@@ -1,0 +1,2 @@
+import api from "../../api/axios.js";
+export const repairsApi = { list: async (params = {}) => (await api.get("/repairs", { params })).data, getById: async (id) => (await api.get(`/repairs/${id}`)).data, create: async (data) => (await api.post("/repairs", data)).data, update: async (id, data) => (await api.put(`/repairs/${id}`, data)).data, start: async (id, data) => (await api.patch(`/repairs/${id}/start`, data)).data, complete: async (id, data) => (await api.patch(`/repairs/${id}/complete`, data)).data };

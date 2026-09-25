@@ -4,11 +4,13 @@ import mongoose from "mongoose";
 import Counter from "../src/server/models/Counter.js";
 import RepairOrder from "../src/server/models/RepairOrder.js";
 
-const uri = "mongodb://127.0.0.1:27018/warehouse_system_repair_order_dependency_test?replicaSet=stockTestRs";
+const uri = "mongodb://127.0.0.1:27018/?replicaSet=stockTestRs";
+const dbName = "warehouse_system_repair_orders_test";
 
 test("RepairOrder supports the exact Customer Return transaction creation contract", async () => {
-  assert.equal(process.env.MONGODB_URI, uri, "Refusing an unapproved database");
-  await mongoose.connect(uri, { autoIndex: false, autoCreate: false });
+  assert.equal(process.env.MONGODB_URI, uri, "Refusing an unapproved database URI");
+  assert.equal(process.env.MONGODB_DB_NAME, dbName, "Refusing an unapproved database name");
+  await mongoose.connect(uri, { dbName, autoIndex: false, autoCreate: false });
   const session = await mongoose.startSession();
   const repairId = new mongoose.Types.ObjectId();
   const productId = new mongoose.Types.ObjectId();
