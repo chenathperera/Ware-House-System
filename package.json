@@ -47,6 +47,7 @@
     "test:cheques-frontend": "node --test tests/cheques-frontend.test.mjs"
     ,"test:sales-orders-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/sales-orders-api.test.mjs"
     ,"test:sales-orders-frontend": "node --test tests/sales-orders-frontend.test.mjs"
+    ,"test:repair-order-dependency": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/repair-order-dependency.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
