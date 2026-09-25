@@ -1,0 +1,11 @@
+"use client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { returnsApi } from "./returnsApi.js";
+const failure = (error) => toast.error(error.response?.data?.message || "Failed");
+const invalidate = (client, keys, message) => () => { keys.forEach((key) => client.invalidateQueries({ queryKey: [key] })); toast.success(message); };
+export const useReturns = (filters = {}) => useQuery({ queryKey: ["returns", filters], queryFn: () => returnsApi.list(filters), placeholderData: (previous) => previous });
+export const useReturn = (id) => useQuery({ queryKey: ["return", id], queryFn: () => returnsApi.getById(id), enabled: !!id });
+export const useEligibleOrders = (customerId) => useQuery({ queryKey: ["eligibleOrdersForReturn", customerId], queryFn: () => returnsApi.eligibleOrders(customerId), enabled: !!customerId });
+export const useCreateReturn = () => { const client = useQueryClient(); return useMutation({ mutationFn: returnsApi.create, onSuccess: invalidate(client, ["returns"], "Return created"), onError: failure }); };
+export const useReturnActions = () => { const client = useQueryClient(); return { approve: useMutation({ mutationFn: returnsApi.approve, onSuccess: invalidate(client, ["returns", "return"], "Approved"), onError: failure }), reject: useMutation({ mutationFn: ({ id, reason }) => returnsApi.reject(id, reason), onSuccess: invalidate(client, ["returns", "return"], "Rejected"), onError: failure }), receive: useMutation({ mutationFn: ({ id, data }) => returnsApi.receive(id, data), onSuccess: invalidate(client, ["returns", "return"], "Received"), onError: failure }), process: useMutation({ mutationFn: ({ id, data }) => returnsApi.process(id, data), onSuccess: invalidate(client, ["returns", "return", "stock", "damages", "repairs"], "Processed"), onError: failure }), issueCreditNote: useMutation({ mutationFn: returnsApi.issueCreditNote, onSuccess: invalidate(client, ["returns", "return", "creditNotes", "customers"], "Credit note issued"), onError: failure }), complete: useMutation({ mutationFn: returnsApi.complete, onSuccess: invalidate(client, ["returns", "return"], "Completed"), onError: failure }) }; };
