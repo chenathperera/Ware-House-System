@@ -4,6 +4,35 @@ import Customer from "../models/Customer.js";
 import Invoice from "../models/Invoice.js";
 import "../models/User.js";
 
+export async function generateInvoiceFromOrders({ salesOrderIds, invoiceDate, invoiceType = "standard", notes, createdBy, status = "approved", session }) {
+  const SalesOrder = (await import("../models/SalesOrder.js")).default;
+  const orders = await SalesOrder.find({ _id: { $in: salesOrderIds }, status: { $in: ["approved", "dispatched", "delivered", "completed"] } }).populate("customerId").session(session || null);
+  if (orders.length === 0) throw new Error("No valid orders found for invoicing");
+  const customer = orders[0].customerId;
+  const items = [];
+  orders.forEach((order) => order.items.forEach((item) => {
+    const quantity = item.deliveredQuantity || item.orderedQuantity;
+    if (quantity <= 0) return;
+    items.push({ productId: item.productId, productCode: item.productCode, productName: item.productName, description: item.description, quantity, unitOfMeasure: item.unitOfMeasure, unitPrice: item.unitPrice, discountPercent: item.discountPercent, taxRate: item.taxRate, taxable: item.taxable, salesOrderLineId: item._id });
+  }));
+  const dueDate = new Date(invoiceDate || Date.now());
+  if (customer.paymentTerms?.type === "credit") dueDate.setDate(dueDate.getDate() + (customer.paymentTerms.creditDays || 0));
+  const invoice = new Invoice({ customerId: customer._id, customerSnapshot: { name: customer.displayName, code: customer.customerCode, taxRegistrationNumber: customer.taxRegistrationNumber, contactName: customer.primaryContact?.name, phone: customer.primaryContact?.phone }, billingAddress: customer.billingAddress, shippingAddress: orders[0].shippingAddress || customer.billingAddress, salesOrderIds: orders.map((order) => order._id), salesOrderNumbers: orders.map((order) => order.orderNumber), invoiceType, invoiceDate: invoiceDate || new Date(), dueDate: customer.paymentTerms?.type === "credit" ? dueDate : undefined, salesRepId: orders[0].salesRepId, paymentTerms: { type: customer.paymentTerms?.type || "cod", creditDays: customer.paymentTerms?.creditDays || 0 }, items, orderDiscount: orders[0].orderDiscount, notes, status, createdBy });
+  await invoice.save({ session: session || undefined });
+  for (const order of orders) { order.status = "invoiced"; await order.save({ session: session || undefined }); }
+  await updateCustomerBalance(customer._id, session);
+  return invoice;
+}
+
+export async function createInvoiceFromSalesOrder(req, res) {
+  const { salesOrderIds, invoiceDate, invoiceType = "standard", notes } = req.body;
+  try {
+    const invoice = await generateInvoiceFromOrders({ salesOrderIds, invoiceDate, invoiceType, notes, createdBy: req.user._id });
+    const populated = await Invoice.findById(invoice._id).populate("customerId", "displayName customerCode").populate("salesOrderIds", "orderNumber");
+    res.status(201).json({ success: true, data: populated });
+  } catch (error) { res.status(400); throw new Error(error.message); }
+}
+
 export async function updateCustomerBalance(customerId, session) {
   const rows = await Invoice.aggregate([
     {

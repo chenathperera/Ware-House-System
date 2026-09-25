@@ -16,6 +16,11 @@ export const invoicesApi = {
     return response.data;
   },
 
+  async createFromSalesOrder(data) {
+    const response = await api.post("/invoices/from-sales-order", data);
+    return response.data;
+  },
+
   async changeStatus(id, status, reason) {
     const response = await api.patch(`/invoices/${id}/status`, {
       status,

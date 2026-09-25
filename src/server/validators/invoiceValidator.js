@@ -32,3 +32,10 @@ export const createInvoiceSchema = z.object({
   termsAndConditions: z.string().optional(),
   status: z.enum(["draft", "approved"]).optional(),
 });
+
+export const createFromSalesOrderSchema = z.object({
+  salesOrderIds: z.array(objectId).min(1),
+  invoiceDate: z.string().optional(),
+  invoiceType: z.enum(["standard", "proforma"]).optional(),
+  notes: z.string().optional(),
+});

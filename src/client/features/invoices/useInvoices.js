@@ -38,6 +38,9 @@ function useInvoiceMutation(mutationFn, message) {
 export const useCreateInvoice = () =>
   useInvoiceMutation(invoicesApi.create, "Invoice created");
 
+export const useGenerateFromSO = () =>
+  useInvoiceMutation(invoicesApi.createFromSalesOrder, "Invoice generated from sales order");
+
 export const useChangeInvoiceStatus = () =>
   useInvoiceMutation(
     ({ id, status, reason }) => invoicesApi.changeStatus(id, status, reason),

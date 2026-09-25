@@ -1,0 +1,10 @@
+"use client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { salesOrdersApi } from "./salesOrdersApi.js";
+const error = (err) => toast.error(err.response?.data?.message || "Failed");
+export const useSalesOrders = (filters = {}) => useQuery({ queryKey: ["salesOrders", filters], queryFn: () => salesOrdersApi.list(filters), placeholderData: (previous) => previous });
+export const useSalesOrder = (id) => useQuery({ queryKey: ["salesOrder", id], queryFn: () => salesOrdersApi.getById(id), enabled: !!id });
+export const useCreateSalesOrder = () => { const qc = useQueryClient(); return useMutation({ mutationFn: salesOrdersApi.create, onSuccess: () => { ["salesOrders", "invoices", "invoicesAging", "stock", "dashboard", "pos-sessions"].forEach((key) => qc.invalidateQueries({ queryKey: [key] })); toast.success("Order created"); }, onError: (err) => toast.error(err.response?.data?.message || "Failed to create order") }); };
+export const useChangeOrderStatus = () => { const qc = useQueryClient(); return useMutation({ mutationFn: ({ id, status, reason }) => salesOrdersApi.changeStatus(id, status, reason), onSuccess: (data) => { qc.invalidateQueries({ queryKey: ["salesOrders"] }); qc.invalidateQueries({ queryKey: ["salesOrder"] }); toast.success(data.message); }, onError: error }); };
+export const useDeleteSalesOrder = () => { const qc = useQueryClient(); return useMutation({ mutationFn: salesOrdersApi.delete, onSuccess: () => { qc.invalidateQueries({ queryKey: ["salesOrders"] }); toast.success("Order deleted"); }, onError: error }); };
