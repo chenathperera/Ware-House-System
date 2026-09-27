@@ -1,0 +1,8 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
+test("Department frontend retains source register and modal fields", async () => { const page = await read("../src/app/(erp)/departments/page.jsx"); for (const text of ["Departments", "Add Department", "Parent Department (optional)", "Delete Department"]) assert.ok(page.includes(text)); });
+test("Designation frontend retains source department selection and actions", async () => { const page = await read("../src/app/(erp)/designations/page.jsx"); for (const text of ["Designations", "Department", "Level", "Delete Designation"]) assert.ok(page.includes(text)); });
+test("Employee frontend retains register, forms, tabs, routes and detail", async () => { const [register, form, detail] = await Promise.all([read("../src/app/(erp)/employees/page.jsx"), read("../src/app/(erp)/employees/_components/EmployeeForm.jsx"), read("../src/app/(erp)/employees/[id]/page.jsx")]); for (const text of ["/employees/new", "Search employees", "All Departments"]) assert.ok(register.includes(text)); for (const text of ["Basic Info", "Statutory & Bank", "Compensation", "Work Shift", "Create Employee", "Update"]) assert.ok(form.includes(text)); for (const text of ["Leave Balances", "Compensation", "Employment & Statutory", "/edit"]) assert.ok(detail.includes(text)); });
+test("Shift frontend retains source timing and modal fields", async () => { const page = await read("../src/app/(erp)/shifts/page.jsx"); for (const text of ["Shifts", "Start Time", "End Time", "Break (minutes)", "Grace (minutes late allowance)"]) assert.ok(page.includes(text)); });

@@ -54,6 +54,8 @@
     ,"test:customer-returns-frontend": "node --test tests/customer-returns-frontend.test.mjs"
     ,"test:credit-notes-frontend": "node --test tests/credit-notes-frontend.test.mjs"
     ,"test:credit-notes-api": "node --conditions=react-server --test --test-concurrency=1 --test-force-exit tests/credit-notes-api.test.mjs"
+    ,"test:hr-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/hr-api.test.mjs"
+    ,"test:hr-frontend": "node --test tests/hr-frontend.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -1,0 +1,28 @@
+import "server-only";
+import Department from "../models/Department.js";
+import Designation from "../models/Designation.js";
+import Employee from "../models/Employee.js";
+import Shift from "../models/Shift.js";
+
+const notFound = (res, message) => { res.status(404); throw new Error(message); };
+
+export async function createDepartment(req, res) { const department = await Department.create(req.body); res.status(201).json({ success: true, data: department }); }
+export async function getDepartments(req, res) { const filter = {}; if (req.query.isActive !== undefined) filter.isActive = req.query.isActive === "true"; const data = await Department.find(filter).populate("managerId", "firstName lastName employeeCode").populate("parentDepartmentId", "name code").sort({ name: 1 }); res.json({ success: true, count: data.length, data }); }
+export async function updateDepartment(req, res) { const data = await Department.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }); if (!data) notFound(res, "Department not found"); res.json({ success: true, data }); }
+export async function deleteDepartment(req, res) { const data = await Department.findById(req.params.id); if (!data) notFound(res, "Department not found"); data.deletedAt = new Date(); data.isActive = false; await data.save(); res.json({ success: true }); }
+
+export async function createDesignation(req, res) { const designation = await Designation.create(req.body); res.status(201).json({ success: true, data: designation }); }
+export async function getDesignations(req, res) { const filter = {}; if (req.query.departmentId) filter.departmentId = req.query.departmentId; if (req.query.isActive !== undefined) filter.isActive = req.query.isActive === "true"; const data = await Designation.find(filter).populate("departmentId", "name code").sort({ level: 1, name: 1 }); res.json({ success: true, count: data.length, data }); }
+export async function updateDesignation(req, res) { const data = await Designation.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }); if (!data) notFound(res, "Designation not found"); res.json({ success: true, data }); }
+export async function deleteDesignation(req, res) { const data = await Designation.findById(req.params.id); if (!data) notFound(res, "Designation not found"); data.deletedAt = new Date(); data.isActive = false; await data.save(); res.json({ success: true }); }
+
+export async function createEmployee(req, res) { const employee = new Employee({ ...req.body, createdBy: req.user._id }); await employee.save(); const data = await Employee.findById(employee._id).populate("departmentId", "name code").populate("designationId", "name code").populate("reportsToId", "firstName lastName employeeCode"); res.status(201).json({ success: true, data }); }
+export async function getEmployees(req, res) { const { search, departmentId, designationId, status, employmentType, page = 1, limit = 20, sortBy = "createdAt", sortOrder = "desc" } = req.query; const filter = {}; if (search) filter.$or = ["firstName", "lastName", "employeeCode", "email", "phone"].map((field) => ({ [field]: { $regex: search, $options: "i" } })); if (departmentId) filter.departmentId = departmentId; if (designationId) filter.designationId = designationId; if (status) filter.status = status; if (employmentType) filter.employmentType = employmentType; const skip = (Number(page) - 1) * Number(limit); const [data, total] = await Promise.all([Employee.find(filter).populate("departmentId", "name code").populate("designationId", "name code").populate("reportsToId", "firstName lastName employeeCode").sort({ [sortBy]: sortOrder === "asc" ? 1 : -1 }).skip(skip).limit(Number(limit)), Employee.countDocuments(filter)]); res.json({ success: true, count: data.length, total, page: Number(page), totalPages: Math.ceil(total / Number(limit)), data }); }
+export async function getEmployeeById(req, res) { const data = await Employee.findById(req.params.id).populate("departmentId", "name code").populate("designationId", "name code").populate("reportsToId", "firstName lastName employeeCode").populate("userId", "email role isActive").populate("workShift", "name startTime endTime").populate("salaryStructureId", "name code components"); if (!data) notFound(res, "Employee not found"); res.json({ success: true, data }); }
+export async function updateEmployee(req, res) { const data = await Employee.findByIdAndUpdate(req.params.id, { ...req.body, updatedBy: req.user._id }, { new: true, runValidators: true }); if (!data) notFound(res, "Employee not found"); res.json({ success: true, data }); }
+export async function deleteEmployee(req, res) { const data = await Employee.findById(req.params.id); if (!data) notFound(res, "Employee not found"); data.deletedAt = new Date(); data.status = "terminated"; await data.save(); res.json({ success: true }); }
+
+export async function createShift(req, res) { const shift = await Shift.create(req.body); res.status(201).json({ success: true, data: shift }); }
+export async function getShifts(req, res) { const data = await Shift.find().sort({ startTime: 1 }); res.json({ success: true, count: data.length, data }); }
+export async function updateShift(req, res) { const data = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }); if (!data) notFound(res, "Shift not found"); res.json({ success: true, data }); }
+export async function deleteShift(req, res) { const data = await Shift.findById(req.params.id); if (!data) notFound(res, "Shift not found"); data.deletedAt = new Date(); data.isActive = false; await data.save(); res.json({ success: true }); }
