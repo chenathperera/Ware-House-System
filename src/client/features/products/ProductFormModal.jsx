@@ -109,7 +109,7 @@ export default function ProductFormModal({ isOpen, onClose, product = null }) {
       }
       size="xl"
     >
-      <form onSubmit={handleSubmit(submit)}>
+      <form onSubmit={handleSubmit(submit, () => setActiveTab("basic"))}>
         <div className="border-b border-gray-200">
           <div className="flex gap-1 overflow-x-auto px-6">
             {productTabs.map((tab) =>

@@ -25,6 +25,10 @@ test("Stock data layer retains original endpoints, query keys, placeholder data,
     hooks,
     /invalidateQueries\(\{ queryKey: \["stockMovements"\] \}\)/,
   );
+  assert.match(
+    hooks,
+    /invalidateQueries\(\{ queryKey: \["bomAvailability"\] \}\)/,
+  );
   assert.match(hooks, /error\.response\?\.data\?\.message \|\| "Failed"/);
 });
 

@@ -31,6 +31,7 @@ function useStockMutation(mutationFn) {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["stock"] });
       queryClient.invalidateQueries({ queryKey: ["stockMovements"] });
+      queryClient.invalidateQueries({ queryKey: ["bomAvailability"] });
       toast.success(data.message);
     },
     onError: (error) => toast.error(error.response?.data?.message || "Failed"),

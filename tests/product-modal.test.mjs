@@ -9,6 +9,7 @@ import {
   roundedProfit,
   toProductPayload,
 } from "../src/client/features/products/productFormState.js";
+import { productFormSchema } from "../src/client/features/products/productSchemas.js";
 test("product form preserves original tabs and pricing rounding", () => {
   assert.deepEqual(
     productTabs.map((tab) => tab.id),
@@ -69,4 +70,24 @@ test("modal and quick create retain source-specific sections and payload behavio
   assert.match(modal, /Wholesale Price Tiers/);
   assert.match(quick, /Product name required/);
   assert.match(quick, /canBeManufactured: false/);
+});
+test("product create returns to visible required-field errors instead of silently blocking submission", async () => {
+  const invalidCreate = productFormSchema.safeParse({
+    ...productFormDefaults(),
+    name: "Raw material",
+    productType: "raw_material",
+  });
+  assert.equal(invalidCreate.success, false);
+  assert.ok(invalidCreate.error.issues.some((issue) => issue.path[0] === "categoryId"));
+  assert.ok(invalidCreate.error.issues.some((issue) => issue.path[0] === "unitOfMeasure"));
+  const modal = await readFile(
+    new URL(
+      "../src/client/features/products/ProductFormModal.jsx",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  assert.match(modal, /handleSubmit\(submit, \(\) => setActiveTab\("basic"\)\)/);
+  assert.match(modal, /error=\{errors\.categoryId\?\.message\}/);
+  assert.match(modal, /error=\{errors\.unitOfMeasure\?\.message\}/);
 });
