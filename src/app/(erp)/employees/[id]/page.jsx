@@ -1,4 +1,5 @@
 "use client";
+
 import { ArrowLeft, Edit } from "lucide-react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
@@ -8,13 +9,144 @@ import Button from "../../../../components/ui/Button.jsx";
 import Badge from "../../../../components/ui/Badge.jsx";
 import { useEmployee } from "../../../../client/features/hr/useHr.js";
 
-const variants = { active: "success", on_leave: "warning", probation: "info", suspended: "danger", terminated: "default", resigned: "default" };
-const date = (value) => value ? new Date(value).toLocaleDateString("en-LK") : "—";
-const value = (item) => item || "—";
+const variants = {
+  active: "success",
+  on_leave: "warning",
+  probation: "info",
+  suspended: "danger",
+  terminated: "default",
+  resigned: "default",
+};
+const formatDate = (item) =>
+  item ? new Date(item).toLocaleDateString("en-LK") : "—";
+const displayValue = (item) => item || "—";
+
 export default function EmployeeDetailPage({ params }) {
   const { id } = use(params);
-  const router = useRouter(); const { data, isLoading } = useEmployee(id); const employee = data?.data;
-  if (isLoading || !employee) return <div className="py-16 text-center text-gray-500">Loading...</div>;
-  const details = [["Department", employee.departmentId?.name], ["Designation", employee.designationId?.name], ["Employment Type", employee.employmentType?.replace(/_/g, " ")], ["Date of Joining", date(employee.dateOfJoining)], ["Work Location", employee.workLocation], ["Shift", employee.workShift?.name], ["EPF Number", employee.epfNumber], ["ETF Number", employee.etfNumber], ["TIN", employee.taxRegistrationNumber]];
-  return <div><PageHeader title={<span className="flex items-center gap-3">{employee.firstName} {employee.lastName}<Badge variant={variants[employee.status]}>{employee.status?.replace(/_/g, " ")}</Badge></span>} description={`${employee.employeeCode} · ${employee.designationId?.name || "No designation"}`} actions={<><Button variant="outline" onClick={() => router.push("/employees")}><ArrowLeft size={16} className="mr-1.5" />Back</Button><Button variant="outline" onClick={() => router.push(`/employees/${employee._id}/edit`)}><Edit size={16} className="mr-1.5" />Edit</Button></>} /><div className="grid grid-cols-1 gap-6 lg:grid-cols-3"><div className="space-y-6 lg:col-span-2"><Card className="p-6"><h3 className="mb-4 text-sm font-semibold">Personal</h3><div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2"><div><p className="text-gray-500">Full Name</p><p className="font-medium">{employee.firstName} {employee.lastName}</p></div><div><p className="text-gray-500">Gender</p><p>{value(employee.gender?.replace(/_/g, " "))}</p></div><div><p className="text-gray-500">Date of Birth</p><p>{date(employee.dateOfBirth)}</p></div><div><p className="text-gray-500">NIC</p><p>{value(employee.nationalIdNumber)}</p></div></div></Card><Card className="p-6"><h3 className="mb-4 text-sm font-semibold">Contact</h3><div className="space-y-2 text-sm"><p>{value(employee.email)}</p><p>{value(employee.phone)}</p><p>{value(employee.mobile)}</p><p>{employee.permanentAddress?.line1 ? `${employee.permanentAddress.line1}, ${employee.permanentAddress.city} ${employee.permanentAddress.postalCode}` : "—"}</p></div>{employee.emergencyContact?.name && <div className="mt-4 border-t pt-4 text-sm"><p className="font-semibold">Emergency Contact</p><p>{employee.emergencyContact.name} ({employee.emergencyContact.relationship})</p><p>{employee.emergencyContact.phone}</p></div>}</Card><Card className="p-6"><h3 className="mb-4 text-sm font-semibold">Employment & Statutory</h3><div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">{details.map(([label, item]) => <div key={label}><p className="text-gray-500">{label}</p><p>{value(item)}</p></div>)}</div></Card></div><div className="space-y-6"><Card className="p-6"><h3 className="mb-4 text-sm font-semibold">Compensation</h3><p className="text-sm">Basic Salary: <strong>{new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR", minimumFractionDigits: 2 }).format(employee.basicSalary || 0)}</strong></p></Card><Card className="p-6"><h3 className="mb-4 text-sm font-semibold">Leave Balances</h3>{Object.entries(employee.leaveBalances || {}).map(([label, amount]) => <div key={label} className="flex justify-between text-sm"><span className="capitalize text-gray-600">{label}</span><span>{amount} days</span></div>)}</Card></div></div></div>;
+  const router = useRouter();
+  const { data, isLoading } = useEmployee(id);
+  const employee = data?.data;
+
+  if (isLoading || !employee) {
+    return <div className="py-16 text-center text-gray-500">Loading...</div>;
+  }
+
+  const details = [
+    ["Department", employee.departmentId?.name],
+    ["Designation", employee.designationId?.name],
+    ["Employment Type", employee.employmentType?.replace(/_/g, " ")],
+    ["Date of Joining", formatDate(employee.dateOfJoining)],
+    ["Work Location", employee.workLocation],
+    ["Shift", employee.workShift?.name],
+    ["EPF Number", employee.epfNumber],
+    ["ETF Number", employee.etfNumber],
+    ["TIN", employee.taxRegistrationNumber],
+  ];
+  const salary = new Intl.NumberFormat("en-LK", {
+    style: "currency",
+    currency: "LKR",
+    minimumFractionDigits: 2,
+  }).format(employee.basicSalary || 0);
+  const address = employee.permanentAddress?.line1
+    ? `${employee.permanentAddress.line1}, ${employee.permanentAddress.city} ${employee.permanentAddress.postalCode}`
+    : "—";
+
+  return (
+    <div>
+      <PageHeader
+        title={
+          <span className="flex items-center gap-3">
+            {employee.firstName} {employee.lastName}
+            <Badge variant={variants[employee.status]}>
+              {employee.status?.replace(/_/g, " ")}
+            </Badge>
+          </span>
+        }
+        description={`${employee.employeeCode} · ${employee.designationId?.name || "No designation"}`}
+        actions={
+          <>
+            <Button variant="outline" onClick={() => router.push("/employees")}>
+              <ArrowLeft size={16} className="mr-1.5" />
+              Back
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/employees/${employee._id}/edit`)}
+            >
+              <Edit size={16} className="mr-1.5" />
+              Edit
+            </Button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <Card className="p-6">
+            <h3 className="mb-4 text-sm font-semibold">Personal</h3>
+            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+              <Detail label="Full Name" value={<span className="font-medium">{employee.firstName} {employee.lastName}</span>} />
+              <Detail label="Gender" value={displayValue(employee.gender?.replace(/_/g, " "))} />
+              <Detail label="Date of Birth" value={formatDate(employee.dateOfBirth)} />
+              <Detail label="NIC" value={displayValue(employee.nationalIdNumber)} />
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="mb-4 text-sm font-semibold">Contact</h3>
+            <div className="space-y-2 text-sm">
+              <p>{displayValue(employee.email)}</p>
+              <p>{displayValue(employee.phone)}</p>
+              <p>{displayValue(employee.mobile)}</p>
+              <p>{address}</p>
+            </div>
+            {employee.emergencyContact?.name && (
+              <div className="mt-4 border-t pt-4 text-sm">
+                <p className="font-semibold">Emergency Contact</p>
+                <p>{employee.emergencyContact.name} ({employee.emergencyContact.relationship})</p>
+                <p>{employee.emergencyContact.phone}</p>
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="mb-4 text-sm font-semibold">Employment & Statutory</h3>
+            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+              {details.map(([label, item]) => (
+                <Detail key={label} label={label} value={displayValue(item)} />
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card className="p-6">
+            <h3 className="mb-4 text-sm font-semibold">Compensation</h3>
+            <p className="text-sm">
+              Basic Salary: <strong>{salary}</strong>
+            </p>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="mb-4 text-sm font-semibold">Leave Balances</h3>
+            {Object.entries(employee.leaveBalances || {}).map(([label, amount]) => (
+              <div key={label} className="flex justify-between text-sm">
+                <span className="capitalize text-gray-600">{label}</span>
+                <span>{amount} days</span>
+              </div>
+            ))}
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Detail({ label, value }) {
+  return (
+    <div>
+      <p className="text-gray-500">{label}</p>
+      <p>{value}</p>
+    </div>
+  );
 }
