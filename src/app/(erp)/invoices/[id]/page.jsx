@@ -11,6 +11,7 @@ import {
   useChangeInvoiceStatus,
   useInvoice,
 } from "../../../../client/features/invoices/useInvoices.js";
+import { getBluetoothPrintUrl } from "../../../../client/utils/printHelpers.js";
 
 const money = (value) =>
   new Intl.NumberFormat("en-LK", {
@@ -68,9 +69,19 @@ export default function InvoiceDetailPage() {
             <Link href={`/receipt/${invoice._id}`}>
               <Button variant="outline">
                 <Printer size={16} className="mr-1.5" />
-                Print
+                POS Receipt
               </Button>
             </Link>
+            <Button
+              variant="outline"
+              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+              onClick={() => {
+                window.location.href = getBluetoothPrintUrl(invoice._id);
+              }}
+            >
+              <Printer size={16} className="mr-1.5 text-emerald-600" />
+              Bluetooth Print
+            </Button>
             {canSend && (
               <Button
                 variant="primary"

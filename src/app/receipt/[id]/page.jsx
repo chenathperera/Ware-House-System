@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { Printer } from "lucide-react";
 import { useInvoice } from "../../../client/features/invoices/useInvoices.js";
 import { useCompanySettings } from "../../../client/features/settings/useSettings.js";
+import { getBluetoothPrintUrl } from "../../../client/utils/printHelpers.js";
 
 const formatNumber = (value) =>
   new Intl.NumberFormat("en-LK", {
@@ -93,6 +94,15 @@ export default function ReceiptPrintPage() {
         >
           <Printer size={16} />
           Print Receipt
+        </button>
+        <button
+          onClick={() => {
+            window.location.href = getBluetoothPrintUrl(invoice._id);
+          }}
+          className="flex items-center gap-2 rounded border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+        >
+          <Printer size={16} />
+          Bluetooth Print
         </button>
       </div>
 

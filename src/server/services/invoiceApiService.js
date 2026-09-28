@@ -1,6 +1,7 @@
 import "server-only";
 import mongoose from "mongoose";
 import Customer from "../models/Customer.js";
+import CompanySettings from "../models/CompanySettings.js";
 import Invoice from "../models/Invoice.js";
 import "../models/User.js";
 
@@ -204,6 +205,74 @@ export async function getInvoiceById(req, res) {
   }
 
   res.json({ success: true, data: invoice });
+}
+
+export async function getInvoicePrintJson(req, res) {
+  const invoice = await Invoice.findById(req.params.id);
+  if (!invoice) {
+    res.status(404);
+    throw new Error("Invoice not found");
+  }
+
+  const settings = (await CompanySettings.findOne()) || {
+    companyName: "RC TRADERS",
+    address: "Colombo, Sri Lanka",
+    phone: "+94 11 XXX XXXX",
+    receiptFooterMessage: "THANK YOU FOR YOUR BUSINESS!\nPLEASE VISIT AGAIN.",
+  };
+  const printSequence = [];
+  const addText = (content, bold = 0, align = 0, format = 0) => {
+    printSequence.push({ type: 0, content: content || " ", bold, align, format });
+  };
+  const formatLine = (left, right, width = 38) => {
+    const spaces = width - left.length - right.length;
+    return spaces > 0 ? left + " ".repeat(spaces) + right : left + " " + right;
+  };
+
+  addText(settings.companyName, 1, 1, 0);
+  if (settings.address) addText(settings.address, 0, 1, 0);
+  if (settings.phone) addText(`TEL: ${settings.phone}`, 0, 1, 0);
+  if (settings.email) addText(settings.email, 0, 1, 0);
+  if (settings.taxRegistrationNumber) addText(`VAT NO: ${settings.taxRegistrationNumber}`, 1, 1, 0);
+  addText("======================================", 0, 1, 0);
+  addText(formatLine("Receipt No:", invoice.invoiceNumber || ""), 1, 0, 0);
+  const date = invoice.invoiceDate
+    ? new Date(invoice.invoiceDate).toLocaleString("en-LK", {
+      year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+    })
+    : "—";
+  addText(formatLine("Date:", date), 0, 0, 0);
+
+  const customer = invoice.customerSnapshot || {};
+  if (customer.name) addText(formatLine("Customer:", customer.name), 1, 0, 0);
+  if (customer.phone) addText(formatLine("Contact:", customer.phone), 0, 0, 0);
+  addText("--------------------------------------", 0, 1, 0);
+  addText(formatLine("Description", "Amount"), 1, 0, 0);
+  addText("--------------------------------------", 0, 1, 0);
+  for (const item of invoice.items || []) {
+    addText(item.productName, 1, 0, 0);
+    addText(formatLine(`  ${item.quantity} x ${item.unitPrice.toFixed(2)}`, item.lineTotal.toFixed(2)), 0, 0, 0);
+    if (item.discountPercent > 0) addText(`    Disc: ${item.discountPercent}% (-${item.lineDiscount.toFixed(2)})`, 0, 0, 4);
+  }
+
+  addText("--------------------------------------", 0, 1, 0);
+  addText(formatLine("Subtotal", invoice.subtotal.toFixed(2)), 0, 0, 0);
+  const discount = (invoice.totalDiscount || 0) + (invoice.orderDiscount?.amount || 0);
+  if (discount > 0) addText(formatLine("Discount", `-${discount.toFixed(2)}`), 0, 0, 0);
+  if (invoice.totalTax > 0) addText(formatLine("Tax", invoice.totalTax.toFixed(2)), 0, 0, 0);
+  addText("======================================", 0, 1, 0);
+  addText(formatLine("TOTAL", invoice.grandTotal.toFixed(2)), 1, 0, 1);
+  addText(formatLine("Paid Amount", invoice.grandTotal.toFixed(2)), 1, 0, 0);
+  if (invoice.cashReceived !== undefined && invoice.cashReceived > 0) addText(formatLine("Cash Received", invoice.cashReceived.toFixed(2)), 0, 0, 0);
+  if (invoice.changeReturned !== undefined && invoice.changeReturned > 0) addText(formatLine("Change Returned", invoice.changeReturned.toFixed(2)), 0, 0, 0);
+  addText(formatLine("Amount Due", (invoice.balanceDue || 0).toFixed(2)), 1, 0, 0);
+  addText("======================================", 0, 1, 0);
+  if (settings.receiptFooterMessage) {
+    for (const line of settings.receiptFooterMessage.split("\n")) addText(line.trim(), 1, 1, 0);
+  }
+  addText(" ", 0, 1, 0);
+
+  res.json(Object.fromEntries(printSequence.map((item, index) => [index.toString(), item])));
 }
 
 export async function changeInvoiceStatus(req, res) {

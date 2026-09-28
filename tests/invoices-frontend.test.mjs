@@ -115,6 +115,9 @@ test("Invoice detail preserves loading, invoice data, status actions, and receip
   assert.match(page, /updateStatus\("sent"\)/);
   assert.match(page, /updateStatus\("cancelled"\)/);
   assert.match(page, /href=\{`\/receipt\/\$\{invoice\._id\}`\}/);
+  assert.match(page, /POS Receipt/);
+  assert.match(page, /Bluetooth Print/);
+  assert.match(page, /getBluetoothPrintUrl\(invoice\._id\)/);
 });
 
 test("Invoice receipt preserves source company settings, invoice totals, footer, and browser printing", async () => {
@@ -153,4 +156,6 @@ test("Invoice receipt preserves source company settings, invoice totals, footer,
   assert.match(page, /window\.print\(\)/);
   assert.match(page, /setTimeout\(\(\) => \{\s*window\.print\(\);\s*\}, 600\)/);
   assert.match(page, /footer\.split\("\\n"\)/);
+  assert.match(page, /Bluetooth Print/);
+  assert.match(page, /getBluetoothPrintUrl\(invoice\._id\)/);
 });
