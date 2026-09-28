@@ -43,8 +43,6 @@ export function apiHandler(
       if (schema) validate(schema, req, res);
       await service(req, res);
       return res.response;
-    } catch (error) {
-      return errorResponse(error, res);
-    }
+    } catch (error) { return errorResponse(error, res); }
   };
 }

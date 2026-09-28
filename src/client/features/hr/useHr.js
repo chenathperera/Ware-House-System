@@ -1,7 +1,7 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { attendanceApi, departmentsApi, designationsApi, employeesApi, holidaysApi, leavesApi, salaryStructuresApi, shiftsApi } from "./hrApi.js";
+import { attendanceApi, departmentsApi, designationsApi, employeesApi, holidaysApi, leavesApi, payrollApi, salaryStructuresApi, shiftsApi } from "./hrApi.js";
 
 const failed = (error) =>
   toast.error(error.response?.data?.message || "Failed");
@@ -88,3 +88,8 @@ const holidays = makeHooks("holidays", holidaysApi, { create: "Added", update: "
 export const useHolidays = holidays.useList; export const useCreateHoliday = holidays.useCreate; export const useUpdateHoliday = holidays.useUpdate; export const useDeleteHoliday = holidays.useDelete;
 const salaryStructures = makeHooks("salaryStructures", salaryStructuresApi, { create: "Created", update: "Updated", delete: "Deleted" });
 export const useSalaryStructures = salaryStructures.useList; export const useCreateSalaryStructure = salaryStructures.useCreate; export const useUpdateSalaryStructure = salaryStructures.useUpdate; export const useDeleteSalaryStructure = salaryStructures.useDelete;
+export const usePayrolls = (filters = {}) => useQuery({ queryKey: ["payrolls", filters], queryFn: () => payrollApi.list(filters) });
+export const usePayroll = (id) => useQuery({ queryKey: ["payroll", id], queryFn: () => payrollApi.getById(id), enabled: !!id });
+export const useProcessPayroll = () => { const client = useQueryClient(); return useMutation({ mutationFn: payrollApi.process, onSuccess: () => { client.invalidateQueries({ queryKey: ["payrolls"] }); toast.success("Payroll processed"); }, onError: failed }); };
+export const usePayrollActions = () => { const client = useQueryClient(); const invalidate = () => { client.invalidateQueries({ queryKey: ["payrolls"] }); client.invalidateQueries({ queryKey: ["payroll"] }); }; return { approve: useMutation({ mutationFn: payrollApi.approve, onSuccess: () => { invalidate(); toast.success("Approved"); }, onError: failed }), markPaid: useMutation({ mutationFn: payrollApi.markPaid, onSuccess: () => { invalidate(); toast.success("Marked as paid"); }, onError: failed }) }; };
+export const usePayslip = (payrollId, employeeId) => useQuery({ queryKey: ["payslip", payrollId, employeeId], queryFn: () => payrollApi.getPayslip(payrollId, employeeId), enabled: !!payrollId && !!employeeId });

@@ -25,3 +25,12 @@ export const leavesApi = {
 };
 export const holidaysApi = resource("/holidays");
 export const salaryStructuresApi = resource("/salary-structures");
+export const payrollApi = {
+  list: (params = {}) => api.get("/payroll", { params }).then((response) => response.data),
+  getById: (id) => api.get(`/payroll/${id}`).then((response) => response.data),
+  process: (data) => api.post("/payroll/process", data).then((response) => response.data),
+  preview: (data) => api.post("/payroll/preview", data).then((response) => response.data),
+  approve: (id) => api.patch(`/payroll/${id}/approve`).then((response) => response.data),
+  markPaid: (id) => api.patch(`/payroll/${id}/mark-paid`).then((response) => response.data),
+  getPayslip: (payrollId, employeeId) => api.get(`/payroll/${payrollId}/payslip/${employeeId}`).then((response) => response.data),
+};

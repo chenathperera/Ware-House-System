@@ -58,6 +58,8 @@
     ,"test:hr-frontend": "node --test tests/hr-frontend.test.mjs"
     ,"test:hr-ops-api": "node --conditions=react-server --env-file=tests/hr-ops-test.env --test --test-concurrency=1 --test-force-exit tests/hr-ops-api.test.mjs"
     ,"test:hr-ops-frontend": "node --test tests/hr-ops-frontend.test.mjs"
+    ,"test:payroll-api": "node --conditions=react-server --env-file=tests/payroll-test.env --test --test-concurrency=1 --test-force-exit tests/payroll-api.test.mjs"
+    ,"test:payroll-frontend": "node --test tests/payroll-frontend.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
