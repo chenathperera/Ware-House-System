@@ -1,0 +1,6 @@
+import "server-only";
+import mongoose from "mongoose";
+const component = new mongoose.Schema({ name: { type: String, required: true }, code: String, type: { type: String, enum: ["earning", "deduction"], required: true }, calculationType: { type: String, enum: ["fixed", "percentage_of_basic", "percentage_of_gross", "formula"], default: "fixed" }, amount: { type: Number, default: 0 }, percentage: { type: Number, default: 0 }, isTaxable: { type: Boolean, default: true }, isStatutory: { type: Boolean, default: false }, statutoryType: { type: String, enum: ["epf_employee", "epf_employer", "etf", "apit", "other"] }, description: String }, { _id: true });
+const schema = new mongoose.Schema({ name: { type: String, required: true, trim: true }, code: { type: String, trim: true, uppercase: true, unique: true }, description: String, applicableTo: { type: String, enum: ["all", "department", "designation", "custom"], default: "all" }, components: [component], isActive: { type: Boolean, default: true }, deletedAt: { type: Date, default: null } }, { timestamps: true });
+schema.pre(/^find/, function () { if (!this.getOptions || !this.getOptions().includeDeleted) this.where({ deletedAt: null }); });
+export default mongoose.models.SalaryStructure || mongoose.model("SalaryStructure", schema);

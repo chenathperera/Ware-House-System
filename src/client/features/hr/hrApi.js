@@ -11,3 +11,17 @@ export const departmentsApi = resource("/departments");
 export const designationsApi = resource("/designations");
 export const employeesApi = resource("/employees");
 export const shiftsApi = resource("/shifts");
+export const attendanceApi = {
+  list: (params = {}) => api.get("/attendance", { params }).then((r) => r.data),
+  mark: (data) => api.post("/attendance", data).then((r) => r.data),
+  bulkMark: (data) => api.post("/attendance/bulk", data).then((r) => r.data),
+};
+export const leavesApi = {
+  list: (params = {}) => api.get("/leaves", { params }).then((r) => r.data),
+  create: (data) => api.post("/leaves", data).then((r) => r.data),
+  approve: (id) => api.patch(`/leaves/${id}/approve`).then((r) => r.data),
+  reject: ({ id, reason }) => api.patch(`/leaves/${id}/reject`, { reason }).then((r) => r.data),
+  cancel: (id) => api.patch(`/leaves/${id}/cancel`).then((r) => r.data),
+};
+export const holidaysApi = resource("/holidays");
+export const salaryStructuresApi = resource("/salary-structures");
