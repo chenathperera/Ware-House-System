@@ -19,10 +19,20 @@ import {
   getStockMovement,
   getStockValuation,
 } from "../../../../server/services/reportsApiService.js";
+import {
+  getDashboardKpis,
+  getRevenueChart,
+  getTopCustomers,
+  getTopProducts,
+} from "../../../../server/services/dashboardApiService.js";
 
 export const runtime = "nodejs";
 
 const services = {
+  "dashboard/kpis": getDashboardKpis,
+  "dashboard/revenue-chart": getRevenueChart,
+  "dashboard/top-products": getTopProducts,
+  "dashboard/top-customers": getTopCustomers,
   "sales/summary": getSalesSummary,
   "sales/by-product": getSalesByProduct,
   "sales/by-customer": getSalesByCustomer,

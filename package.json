@@ -62,7 +62,9 @@
     "test:pos-api": "node --conditions=react-server --env-file=tests/pos-test.env --test --test-concurrency=1 --test-force-exit tests/pos-sessions-api.test.mjs",
     "test:pos-frontend": "node --test tests/pos-frontend.test.mjs",
     "test:reports-frontend": "node --test tests/reports-frontend.test.mjs",
-    "test:reports-api": "node --conditions=react-server --env-file=tests/reports-test.env --test --test-concurrency=1 --test-force-exit tests/reports-api.test.mjs"
+    "test:reports-api": "node --conditions=react-server --env-file=tests/reports-test.env --test --test-concurrency=1 --test-force-exit tests/reports-api.test.mjs",
+    "test:dashboard-api": "node --conditions=react-server --env-file=tests/dashboard-test.env --test --test-concurrency=1 --test-force-exit tests/dashboard-api.test.mjs",
+    "test:dashboard-frontend": "node --test tests/dashboard-frontend.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

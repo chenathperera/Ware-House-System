@@ -5,6 +5,11 @@ import { reportsApi } from "./reportsApi.js";
 
 const useReportQuery = (key, queryFn) => useQuery({ queryKey: ["reports", key], queryFn });
 
+export const useDashboardKpis = () => useQuery({ queryKey: ["dashboardKpis"], queryFn: reportsApi.dashboardKpis, refetchInterval: 60000 });
+export const useRevenueChart = (months = 6) => useReportQuery(["revenueChart", months], () => reportsApi.revenueChart(months));
+export const useTopProducts = (params = {}) => useReportQuery(["topProducts", params], () => reportsApi.topProducts(params));
+export const useTopCustomers = (params = {}) => useReportQuery(["topCustomers", params], () => reportsApi.topCustomers(params));
+
 export const useSalesSummary = (params = {}) => useReportQuery(["sales-summary", params], () => reportsApi.salesSummary(params));
 export const useSalesByProduct = (params = {}) => useReportQuery(["sales-by-product", params], () => reportsApi.salesByProduct(params));
 export const useSalesByCustomer = (params = {}) => useReportQuery(["sales-by-customer", params], () => reportsApi.salesByCustomer(params));

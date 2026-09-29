@@ -5,6 +5,10 @@ import api from "../../api/axios.js";
 const get = (path, params) => async () => (await api.get(path, { params })).data;
 
 export const reportsApi = {
+  dashboardKpis: () => get("/reports/dashboard/kpis")(),
+  revenueChart: (months = 6) => get("/reports/dashboard/revenue-chart", { months })(),
+  topProducts: (params = {}) => get("/reports/dashboard/top-products", params)(),
+  topCustomers: (params = {}) => get("/reports/dashboard/top-customers", params)(),
   salesSummary: (params = {}) => get("/reports/sales/summary", params)(),
   salesByProduct: (params = {}) => get("/reports/sales/by-product", params)(),
   salesByCustomer: (params = {}) => get("/reports/sales/by-customer", params)(),
