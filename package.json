@@ -14,7 +14,6 @@
     "test:uoms": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/uoms.test.mjs",
     "test:default-seeding": "node --conditions=react-server --test tests/default-seeding.test.mjs",
     "test:settings": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/settings.test.mjs",
-    "test:settings": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/settings.test.mjs",
     "test:warehouses": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/warehouses.test.mjs",
     "test:warehouse-frontend": "node --conditions=react-server --test tests/warehouse-frontend.test.mjs",
     "test:wholesale-prices": "node --conditions=react-server --test tests/wholesale-prices.test.mjs",
@@ -44,24 +43,26 @@
     "test:fund-transfers-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/fund-transfers-api.test.mjs",
     "test:fund-transfers-frontend": "node --test tests/fund-transfers-frontend.test.mjs",
     "test:cheques-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/cheques-api.test.mjs",
-    "test:cheques-frontend": "node --test tests/cheques-frontend.test.mjs"
-    ,"test:sales-orders-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/sales-orders-api.test.mjs"
-    ,"test:sales-orders-frontend": "node --test tests/sales-orders-frontend.test.mjs"
-    ,"test:repair-order-dependency": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/repair-order-dependency.test.mjs"
-    ,"test:repairs-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/repairs-api.test.mjs"
-    ,"test:repairs-frontend": "node --test tests/repairs-frontend.test.mjs"
-    ,"test:customer-returns-api": "node --conditions=react-server --test --test-concurrency=1 --test-force-exit tests/customer-returns-api.test.mjs"
-    ,"test:customer-returns-frontend": "node --test tests/customer-returns-frontend.test.mjs"
-    ,"test:credit-notes-frontend": "node --test tests/credit-notes-frontend.test.mjs"
-    ,"test:credit-notes-api": "node --conditions=react-server --test --test-concurrency=1 --test-force-exit tests/credit-notes-api.test.mjs"
-    ,"test:hr-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/hr-api.test.mjs"
-    ,"test:hr-frontend": "node --test tests/hr-frontend.test.mjs"
-    ,"test:hr-ops-api": "node --conditions=react-server --env-file=tests/hr-ops-test.env --test --test-concurrency=1 --test-force-exit tests/hr-ops-api.test.mjs"
-    ,"test:hr-ops-frontend": "node --test tests/hr-ops-frontend.test.mjs"
-    ,"test:payroll-api": "node --conditions=react-server --env-file=tests/payroll-test.env --test --test-concurrency=1 --test-force-exit tests/payroll-api.test.mjs"
-    ,"test:payroll-frontend": "node --test tests/payroll-frontend.test.mjs"
-    ,"test:pos-api": "node --conditions=react-server --env-file=tests/pos-test.env --test --test-concurrency=1 --test-force-exit tests/pos-sessions-api.test.mjs"
-    ,"test:pos-frontend": "node --test tests/pos-frontend.test.mjs"
+    "test:cheques-frontend": "node --test tests/cheques-frontend.test.mjs",
+    "test:sales-orders-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/sales-orders-api.test.mjs",
+    "test:sales-orders-frontend": "node --test tests/sales-orders-frontend.test.mjs",
+    "test:repair-order-dependency": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/repair-order-dependency.test.mjs",
+    "test:repairs-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/repairs-api.test.mjs",
+    "test:repairs-frontend": "node --test tests/repairs-frontend.test.mjs",
+    "test:customer-returns-api": "node --conditions=react-server --test --test-concurrency=1 --test-force-exit tests/customer-returns-api.test.mjs",
+    "test:customer-returns-frontend": "node --test tests/customer-returns-frontend.test.mjs",
+    "test:credit-notes-frontend": "node --test tests/credit-notes-frontend.test.mjs",
+    "test:credit-notes-api": "node --conditions=react-server --test --test-concurrency=1 --test-force-exit tests/credit-notes-api.test.mjs",
+    "test:hr-api": "node --conditions=react-server --env-file=.env.local --test --test-concurrency=1 --test-force-exit tests/hr-api.test.mjs",
+    "test:hr-frontend": "node --test tests/hr-frontend.test.mjs",
+    "test:hr-ops-api": "node --conditions=react-server --env-file=tests/hr-ops-test.env --test --test-concurrency=1 --test-force-exit tests/hr-ops-api.test.mjs",
+    "test:hr-ops-frontend": "node --test tests/hr-ops-frontend.test.mjs",
+    "test:payroll-api": "node --conditions=react-server --env-file=tests/payroll-test.env --test --test-concurrency=1 --test-force-exit tests/payroll-api.test.mjs",
+    "test:payroll-frontend": "node --test tests/payroll-frontend.test.mjs",
+    "test:pos-api": "node --conditions=react-server --env-file=tests/pos-test.env --test --test-concurrency=1 --test-force-exit tests/pos-sessions-api.test.mjs",
+    "test:pos-frontend": "node --test tests/pos-frontend.test.mjs",
+    "test:reports-frontend": "node --test tests/reports-frontend.test.mjs",
+    "test:reports-api": "node --conditions=react-server --env-file=tests/reports-test.env --test --test-concurrency=1 --test-force-exit tests/reports-api.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -78,6 +79,7 @@
     "react-dom": "^19.2.4",
     "react-hook-form": "^7.72.1",
     "react-hot-toast": "^2.6.0",
+    "recharts": "^2.15.4",
     "server-only": "^0.0.1",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
