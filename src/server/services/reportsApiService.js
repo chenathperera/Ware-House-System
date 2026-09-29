@@ -1,4 +1,5 @@
 import "server-only";
+import mongoose from "mongoose";
 import SalesOrder from "../models/SalesOrder.js";
 import Invoice from "../models/Invoice.js";
 import Payment from "../models/Payment.js";
@@ -59,7 +60,9 @@ export async function getSalesTrend(req, res) {
 }
 
 export async function getStockValuation(req, res) {
-  const match = req.query.warehouseId ? { warehouseId: req.query.warehouseId } : {};
+  const match = req.query.warehouseId
+    ? { warehouseId: new mongoose.Types.ObjectId(req.query.warehouseId) }
+    : {};
   const data = await StockItem.aggregate([{ $match: match }, { $lookup: { from: "products", localField: "productId", foreignField: "_id", as: "product" } }, { $unwind: "$product" }, { $match: { "product.deletedAt": null } }, { $lookup: { from: "warehouses", localField: "warehouseId", foreignField: "_id", as: "warehouse" } }, { $unwind: "$warehouse" }, { $project: { productId: "$product._id", productCode: "$product.productCode", productName: "$product.name", productType: "$product.productType", warehouseName: "$warehouse.name", warehouseCode: "$warehouse.warehouseCode", onHand: "$quantities.onHand", reserved: "$quantities.reserved", available: { $subtract: ["$quantities.onHand", "$quantities.reserved"] }, costPerUnit: 1, totalValue: { $multiply: ["$quantities.onHand", "$costPerUnit"] }, batchNumber: 1 } }, { $sort: { totalValue: -1 } }]);
   const byType = data.reduce((all, row) => { const type = row.productType || "unknown"; all[type] ||= { type, units: 0, value: 0, items: 0 }; all[type].units += row.onHand || 0; all[type].value += row.totalValue || 0; all[type].items += 1; return all; }, {});
   res.json({ success: true, data: { summary: { totalValue: money(data.reduce((sum, row) => sum + (row.totalValue || 0), 0)), totalUnits: data.reduce((sum, row) => sum + (row.onHand || 0), 0), productCount: data.length }, byProductType: Object.values(byType).map((row) => ({ ...row, value: money(row.value) })), items: data.map((row) => ({ ...row, totalValue: money(row.totalValue) })) } });

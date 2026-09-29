@@ -59,7 +59,15 @@ test("Reports frontend retains the source-backed hub, routes, charts, and export
 
   assert.match(sales, /LineChart/);
   assert.match(inventory, /PieChart/);
+  assert.match(inventory, /value: item\._id/);
+  assert.match(inventory, /warehouseId: warehouseId \|\| undefined/);
   assert.match(operations, /PieChart/);
+  const production = operations.slice(
+    operations.indexOf("export function ProductionReport"),
+    operations.indexOf("export function ReturnsReport"),
+  );
+  assert.match(production, /Production by Product/);
+  assert.doesNotMatch(production, /\bhead\b/);
   for (const filename of [
     "sales-by-product-${startDate}-to-${endDate}.csv",
     "sales-by-customer-${startDate}-to-${endDate}.csv",

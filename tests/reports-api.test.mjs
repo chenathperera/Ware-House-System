@@ -51,9 +51,10 @@ test("Reports API preserves source report calculations and filters", { timeout: 
   const april = new Date("2026-04-15T12:00:00.000Z");
   const old = new Date("2025-01-01T12:00:00.000Z");
   const user = { _id: id(), firstName: "Report", lastName: "Admin", email: "reports@example.invalid", role: "admin", password: "unused", deletedAt: null };
-  const customerA = id(); const customerB = id(); const productA = id(); const productB = id(); const warehouse = id(); const department = id(); const designation = id(); const employee = id();
+  const customerA = id(); const customerB = id(); const productA = id(); const productB = id(); const warehouse = id(); const otherWarehouse = id(); const department = id(); const designation = id(); const employee = id();
   await User.collection.insertOne(user);
   await Warehouse.collection.insertOne({ _id: warehouse, name: "Main", warehouseCode: "MAIN", deletedAt: null });
+  await Warehouse.collection.insertOne({ _id: otherWarehouse, name: "Branch", warehouseCode: "BRANCH", deletedAt: null });
   await Product.collection.insertMany([
     { _id: productA, productCode: "P-A", name: "Alpha", productType: "finished_good", canBeSold: true, status: "active", basePrice: 20, purchasePrice: 8, stockLevels: { reorderLevel: 10, minimumStock: 5 }, deletedAt: null },
     { _id: productB, productCode: "P-B", name: "Beta", productType: "raw_material", canBeSold: true, status: "active", basePrice: 10, purchasePrice: 4, stockLevels: { reorderLevel: 20, minimumStock: 10 }, deletedAt: null },
@@ -68,7 +69,7 @@ test("Reports API preserves source report calculations and filters", { timeout: 
     { _id: id(), customerId: customerB, invoiceDate: april, status: "void", grandTotal: 30, subtotal: 30, totalDiscount: 0, amountPaid: 0, balanceDue: 30, paymentStatus: "unpaid", agingBucket: "current", items: [], deletedAt: null },
   ]);
   await Payment.collection.insertMany([{ _id: id(), direction: "received", paymentDate: april, amount: 70, deletedAt: null }, { _id: id(), direction: "paid", paymentDate: april, amount: 25, deletedAt: null }]);
-  await StockItem.collection.insertMany([{ _id: id(), productId: productA, warehouseId: warehouse, quantities: { onHand: 12, reserved: 2 }, costPerUnit: 8 }, { _id: id(), productId: productB, warehouseId: warehouse, quantities: { onHand: 6, reserved: 1 }, costPerUnit: 4 }]);
+  await StockItem.collection.insertMany([{ _id: id(), productId: productA, warehouseId: warehouse, quantities: { onHand: 12, reserved: 2 }, costPerUnit: 8 }, { _id: id(), productId: productB, warehouseId: warehouse, quantities: { onHand: 6, reserved: 1 }, costPerUnit: 4 }, { _id: id(), productId: productA, warehouseId: otherWarehouse, quantities: { onHand: 2, reserved: 0 }, costPerUnit: 10 }]);
   await StockMovement.collection.insertMany([{ _id: id(), productId: productA, warehouseId: warehouse, direction: "out", movementType: "sale_dispatch", quantity: 5, createdAt: now, performedBy: user._id }, { _id: id(), productId: productB, warehouseId: warehouse, direction: "out", movementType: "sale_dispatch", quantity: 2, createdAt: now, performedBy: user._id }]);
   await ProductionOrder.collection.insertMany([{ _id: id(), finishedProductId: productA, finishedProductCode: "P-A", finishedProductName: "Alpha", status: "completed", plannedQuantity: 10, totalProduced: 8, totalPlannedCost: 100, totalActualCost: 120, costVariance: 20, costPerUnit: 15, actualEndDate: april, createdAt: april, deletedAt: null }]);
   await DamageRecord.collection.insertMany([{ _id: id(), productId: productA, productCode: "P-A", productName: "Alpha", source: "production_reject", quantity: 2, totalValue: 16, createdAt: april, deletedAt: null }, { _id: id(), productId: productB, productCode: "P-B", productName: "Beta", source: "warehouse_damage", quantity: 3, totalValue: 12, createdAt: april, deletedAt: null }]);
@@ -90,10 +91,12 @@ test("Reports API preserves source report calculations and filters", { timeout: 
     const trend = await call(["sales", "trend"], `${query}&groupBy=month`, user); assert.deepEqual(trend.body.data, [{ label: "2026-04", count: 1, total: 100 }]);
   });
   await t.test("inventory reports preserve valuation, movement, ABC, and low-stock behavior", async () => {
-    const valuation = await call(["inventory", "valuation"], "", user); assert.equal(valuation.body.data.summary.totalValue, 120); assert.equal(valuation.body.data.summary.totalUnits, 18);
+    const valuation = await call(["inventory", "valuation"], "", user); assert.equal(valuation.body.data.summary.totalValue, 140); assert.equal(valuation.body.data.summary.totalUnits, 20); assert.equal(valuation.body.data.items.length, 3);
+    const mainValuation = await call(["inventory", "valuation"], `?warehouseId=${warehouse}`, user); assert.equal(mainValuation.body.data.summary.totalValue, 120); assert.equal(mainValuation.body.data.summary.totalUnits, 18); assert.equal(mainValuation.body.data.items.length, 2); assert.ok(mainValuation.body.data.items.every((item) => item.warehouseCode === "MAIN"));
+    const branchValuation = await call(["inventory", "valuation"], `?warehouseId=${otherWarehouse}`, user); assert.equal(branchValuation.body.data.summary.totalValue, 20); assert.equal(branchValuation.body.data.summary.totalUnits, 2); assert.equal(branchValuation.body.data.items.length, 1); assert.equal(branchValuation.body.data.items[0].warehouseCode, "BRANCH");
     const movement = await call(["inventory", "movement"], "?productId=" + productA, user); assert.equal(movement.body.count, 1); assert.equal(movement.body.data[0].quantity, 5);
     const movers = await call(["inventory", "slow-fast-movers"], "?days=90", user); assert.equal(movers.body.data.classification.B[0].productCode, "P-A"); assert.equal(movers.body.data.summary.fastMovers, 0); assert.equal(movers.body.data.summary.deadStock, 0);
-    const low = await call(["inventory", "low-stock"], "", user); assert.equal(low.body.data.length, 2); assert.equal(low.body.data[0].productCode, "P-B");
+    const low = await call(["inventory", "low-stock"], "", user); assert.equal(low.body.data.length, 1); assert.equal(low.body.data[0].productCode, "P-B");
   });
   await t.test("production, returns, damages, financial, and HR calculations remain exact", async () => {
     const dates = "?startDate=2026-04-01&endDate=2026-04-30";

@@ -79,40 +79,6 @@ export function ProductionReport() {
               value={money(summary.totalVariance)}
             />
           </div>
-          <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Card>
-              <div className="border-b px-6 py-4 text-sm font-semibold">
-                By Department
-              </div>
-              <Table
-                columns={[
-                  {
-                    key: "name",
-                    label: "Department",
-                    render: (row) => row.name || "Unassigned",
-                  },
-                  { key: "count", label: "Headcount" },
-                ]}
-                data={head.byDepartment}
-              />
-            </Card>
-            <Card>
-              <div className="border-b px-6 py-4 text-sm font-semibold">
-                By Employment Type
-              </div>
-              <Table
-                columns={[
-                  {
-                    key: "_id",
-                    label: "Type",
-                    render: (row) => row._id?.replace(/_/g, " "),
-                  },
-                  { key: "count", label: "Count" },
-                ]}
-                data={head.byEmploymentType}
-              />
-            </Card>
-          </div>
           <Card className="mb-6">
             <div className="border-b px-6 py-4 text-sm font-semibold">
               Production by Product
