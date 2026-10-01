@@ -8,6 +8,7 @@ import User from "../src/server/models/User.js";
 import { GET as list, POST as create } from "../src/app/api/invoices/route.js";
 import { GET as detail } from "../src/app/api/invoices/[id]/route.js";
 import { PATCH as status } from "../src/app/api/invoices/[id]/status/route.js";
+import { GET as aging } from "../src/app/api/invoices/aging/summary/route.js";
 
 const uri =
   "mongodb://127.0.0.1:27018/warehouse_system_invoice_test?replicaSet=stockTestRs";
@@ -135,6 +136,11 @@ test("Invoice source model and manual API contract", async (t) => {
     invoice.amountPaid = 0;
     await invoice.save();
     assert.equal(invoice.paymentStatus, "overdue");
+    const summary = await call(aging, "/api/invoices/aging/summary", { user: admin });
+    assert.equal(summary.status, 200, JSON.stringify(summary.body));
+    assert.equal(summary.body.data.counts["91_plus"], 1);
+    assert.equal(summary.body.data.buckets["91_plus"], 219.4);
+    assert.equal(summary.body.data.totalOutstanding, 219.4);
   });
 
   await t.test("manual invoices have no stock side effects and soft-delete filter remains active", async () => {

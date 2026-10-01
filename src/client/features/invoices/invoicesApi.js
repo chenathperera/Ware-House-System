@@ -29,6 +29,11 @@ export const invoicesApi = {
     return response.data;
   },
 
+  async agingSummary(params = {}) {
+    const response = await api.get("/invoices/aging/summary", { params });
+    return response.data;
+  },
+
   async remove(id) {
     const response = await api.delete(`/invoices/${id}`);
     return response.data;

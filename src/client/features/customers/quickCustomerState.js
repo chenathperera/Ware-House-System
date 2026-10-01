@@ -6,7 +6,7 @@ export const emptyQuickCustomerForm = {
   email: "",
   addressLine1: "",
   city: "",
-  paymentTermsType: "cash",
+  paymentTermsType: "cod",
   creditLimit: 0,
   creditDays: 0,
 };
@@ -22,7 +22,7 @@ export function hydrateQuickCustomerForm(initialData) {
     email: initialData.primaryContact?.email || "",
     addressLine1: initialData.billingAddress?.line1 || "",
     city: initialData.billingAddress?.city || "",
-    paymentTermsType: initialData.paymentTerms?.type || "cash",
+    paymentTermsType: initialData.paymentTerms?.type || "cod",
     creditLimit: initialData.creditLimit || 0,
     creditDays: initialData.paymentTerms?.creditDays || 0,
   };

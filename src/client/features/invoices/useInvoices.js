@@ -20,6 +20,13 @@ export function useInvoice(id) {
   });
 }
 
+export function useAgingSummary(filters = {}) {
+  return useQuery({
+    queryKey: ["invoicesAging", filters],
+    queryFn: () => invoicesApi.agingSummary(filters),
+  });
+}
+
 function useInvoiceMutation(mutationFn, message) {
   const queryClient = useQueryClient();
 

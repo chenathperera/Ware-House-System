@@ -5,6 +5,8 @@ import CompanySettings from "../models/CompanySettings.js";
 import Invoice from "../models/Invoice.js";
 import "../models/User.js";
 
+let lastInvoiceAgingUpdate = null;
+
 export async function generateInvoiceFromOrders({ salesOrderIds, invoiceDate, invoiceType = "standard", notes, createdBy, status = "approved", session }) {
   const SalesOrder = (await import("../models/SalesOrder.js")).default;
   const orders = await SalesOrder.find({ _id: { $in: salesOrderIds }, status: { $in: ["approved", "dispatched", "delivered", "completed"] } }).populate("customerId").session(session || null);
@@ -127,6 +129,7 @@ export async function createInvoice(req, res) {
 }
 
 export async function getInvoices(req, res) {
+  await updateInvoiceAging();
   const {
     search,
     customerId,
@@ -187,6 +190,66 @@ export async function getInvoices(req, res) {
     totalPages: Math.ceil(total / Number(limit)),
     data,
   });
+}
+
+export async function updateInvoiceAging(force = false) {
+  const today = new Date().toDateString();
+  if (!force && lastInvoiceAgingUpdate === today) return;
+
+  const invoices = await Invoice.find({
+    paymentStatus: { $in: ["unpaid", "partially_paid", "overdue"] },
+    deletedAt: null,
+  }).select("_id customerId dueDate daysPastDue paymentStatus agingBucket");
+  const now = new Date();
+  const bulkOps = [];
+  const customerIds = new Set();
+
+  for (const invoice of invoices) {
+    if (!invoice.dueDate) continue;
+    const daysPastDue = Math.max(
+      0,
+      Math.floor((now - new Date(invoice.dueDate)) / (1000 * 60 * 60 * 24)),
+    );
+    let paymentStatus = invoice.paymentStatus;
+    if (daysPastDue > 0 && paymentStatus === "unpaid") paymentStatus = "overdue";
+    let agingBucket = "current";
+    if (daysPastDue <= 30 && daysPastDue > 0) agingBucket = "1_30";
+    else if (daysPastDue <= 60 && daysPastDue > 0) agingBucket = "31_60";
+    else if (daysPastDue <= 90 && daysPastDue > 0) agingBucket = "61_90";
+    else if (daysPastDue > 90) agingBucket = "91_plus";
+
+    if (invoice.daysPastDue !== daysPastDue || invoice.paymentStatus !== paymentStatus || invoice.agingBucket !== agingBucket) {
+      bulkOps.push({ updateOne: { filter: { _id: invoice._id }, update: { $set: { daysPastDue, paymentStatus, agingBucket } } } });
+      customerIds.add(String(invoice.customerId));
+    }
+  }
+  if (bulkOps.length) {
+    await Invoice.bulkWrite(bulkOps);
+    for (const customerId of customerIds) await updateCustomerBalance(customerId);
+  }
+  lastInvoiceAgingUpdate = today;
+}
+
+export async function getReceivablesAging(req, res) {
+  await updateInvoiceAging();
+  const match = {
+    paymentStatus: { $in: ["unpaid", "partially_paid", "overdue"] },
+    deletedAt: null,
+  };
+  if (req.query.customerId) match.customerId = new mongoose.Types.ObjectId(req.query.customerId);
+  const rows = await Invoice.aggregate([
+    { $match: match },
+    { $group: { _id: "$agingBucket", count: { $sum: 1 }, total: { $sum: "$balanceDue" } } },
+  ]);
+  const buckets = { current: 0, "1_30": 0, "31_60": 0, "61_90": 0, "91_plus": 0 };
+  const counts = { ...buckets };
+  rows.forEach((row) => {
+    if (row._id in buckets) {
+      buckets[row._id] = row.total;
+      counts[row._id] = row.count;
+    }
+  });
+  res.json({ success: true, data: { buckets, counts, totalOutstanding: Object.values(buckets).reduce((sum, value) => sum + value, 0) } });
 }
 
 export async function getInvoiceById(req, res) {

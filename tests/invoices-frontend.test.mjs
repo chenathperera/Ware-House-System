@@ -19,31 +19,49 @@ test("Invoice client hooks preserve API mutations, cache refreshes, and feedback
   assert.match(hooks, /toast\.error/);
 });
 
-test("Invoice register preserves source search, status, navigation, and pagination workflows", async () => {
+test("Invoice register preserves source actions, aging, filters, table, and empty-state workflows", async () => {
   const page = await read("../src/app/(erp)/invoices/page.jsx");
 
   for (const value of [
     "Invoices",
-    "Track customer invoices and payments",
+    "Bill customers and track outstanding payments",
+    "From Sales Order",
     "Manual Invoice",
-    "Search invoices...",
-    "All Payment Statuses",
+    "Current",
+    "1-30 days",
+    "31-60 days",
+    "61-90 days",
+    "90+ days",
+    "Search by invoice # or customer...",
+    "All Statuses",
     "Loading...",
     "No invoices",
-    "Create a manual invoice to get started.",
+    "Generate invoices from sales orders or create manual ones",
     "Invoice #",
     "Customer",
-    "Payment",
-    "Status",
+    "Outstanding",
   ]) {
     assert.ok(page.includes(value));
   }
 
-  assert.match(page, /href=\{`\/invoices\/\$\{invoice\._id\}`\}/);
-  assert.match(page, /updateFilter\("search", event\.target\.value\)/);
-  assert.match(page, /updateFilter\("paymentStatus", event\.target\.value\)/);
+  assert.match(page, /router\.push\(`\/invoices\/\$\{invoice\._id\}`\)/);
+  assert.match(page, /update\("search", event\.target\.value\)/);
+  assert.match(page, /update\("paymentStatus", event\.target\.value\)/);
+  assert.match(page, /update\("agingBucket", bucket\.key\)/);
+  assert.match(page, /Clear aging filter/);
+  assert.match(page, /Generate from Sales Order/);
+  assert.match(page, /overflow-x-auto/);
   assert.match(page, /<Pagination/);
   assert.match(page, /totalPages=\{data\?\.totalPages \|\| 1\}/);
+});
+
+test("Invoice client exposes source-backed receivables aging", async () => {
+  const [api, hooks] = await Promise.all([
+    read("../src/client/features/invoices/invoicesApi.js"),
+    read("../src/client/features/invoices/useInvoices.js"),
+  ]);
+  assert.match(api, /\/invoices\/aging\/summary/);
+  assert.match(hooks, /queryKey: \["invoicesAging", filters\]/);
 });
 
 test("Manual Invoice page preserves active lookup, product hydration, validation, totals, and create navigation", async () => {

@@ -45,7 +45,7 @@ const menuItems = [
       ["Sales Orders", "/sales-orders"],
       ["Wholesale Prices", "/wholesale-prices"],
       ["Invoices", "/invoices"],
-      
+      ["Payments Received", "/payments"],
       ["Customer Returns", "/returns"],
       ["Repairs Workshop", "/repairs"],
     ],

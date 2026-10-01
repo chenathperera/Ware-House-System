@@ -43,8 +43,6 @@ export default function QuickCreateCustomerModal({
 
   async function submit() {
     if (!form.displayName) return toast.error("Customer name required");
-    if (!form.phone && !form.email)
-      return toast.error("Phone or email required");
     try {
       const payload = toQuickCustomerPayload(form);
       const result = initialData
@@ -127,7 +125,7 @@ export default function QuickCreateCustomerModal({
             <Select
               label="Payment Terms"
               options={[
-                { value: "cash", label: "Cash on delivery" },
+                { value: "cod", label: "Cash on delivery" },
                 { value: "credit", label: "Credit" },
               ]}
               value={form.paymentTermsType}
