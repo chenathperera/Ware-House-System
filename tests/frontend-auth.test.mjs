@@ -108,3 +108,20 @@ test("protected route source preserves the original redirect and public route bo
   assert.match(rootDashboard, /title="Dashboard"/);
   assert.match(notFound, /Page not found/);
 });
+
+test("application shell uses Asipbook branding without changing company document fallbacks", async () => {
+  const root = process.cwd();
+  const [sidebar, login, layout, receiptService] = await Promise.all([
+    readFile(path.join(root, "src", "components", "layout", "Sidebar.jsx"), "utf8"),
+    readFile(path.join(root, "src", "app", "login", "page.jsx"), "utf8"),
+    readFile(path.join(root, "src", "app", "layout.jsx"), "utf8"),
+    readFile(path.join(root, "src", "server", "services", "invoiceApiService.js"), "utf8"),
+  ]);
+
+  assert.match(sidebar, /Asipbook Business Management System/);
+  assert.doesNotMatch(sidebar, /RC Traders/);
+  assert.match(login, /Asipbook Business Management System/);
+  assert.doesNotMatch(login, /Wholesale System|Manufacturing & Distribution|RC Traders/);
+  assert.match(layout, /title: "Asipbook ERP System"/);
+  assert.match(receiptService, /companyName: "RC TRADERS"/);
+});

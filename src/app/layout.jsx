@@ -2,8 +2,8 @@ import "./globals.css";
 import AppProviders from "../components/providers/AppProviders.jsx";
 
 export const metadata = {
-  title: "Warehouse System Migration",
-  description: "Next.js migration foundation for the Warehouse System.",
+  title: "Asipbook ERP System",
+  description: "Asipbook Business Management System.",
 };
 
 export default function RootLayout({ children }) {

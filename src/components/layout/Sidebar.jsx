@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -21,6 +22,7 @@ import {
   ShoppingCart,
   Users as UsersIcon,
 } from "lucide-react";
+import asipbookLogo from "../../app/login/assets/asipbook-logo.png";
 const menuItems = [
   { label: "Dashboard", id: "dashboard", icon: LayoutDashboard, path: "/dashboard" },
   {
@@ -155,12 +157,12 @@ export default function Sidebar({ userRole, isOpen, onClose }) {
       >
         <div className="flex h-full w-[280px] flex-col bg-white">
           <div className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 shadow-lg shadow-indigo-100">
-                <Package className="h-6 w-6 text-white" />
-              </div>
-              <h2 className="text-xl font-bold tracking-tight text-gray-900">RC Traders</h2>
-            </div>
+            <Image
+              src={asipbookLogo}
+              alt="Asipbook Business Management System"
+              className="h-10 w-auto object-contain"
+              priority
+            />
             <button onClick={onClose} className="rounded-lg p-2 text-gray-400 hover:bg-gray-50">
               <PanelLeftClose size={18} />
             </button>
