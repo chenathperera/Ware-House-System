@@ -6,14 +6,24 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Eye, EyeOff, Package } from "lucide-react";
+import Image from "next/image";
+import {
+  ChartNoAxesColumnIncreasing,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+  Package,
+  ShoppingCart,
+} from "lucide-react";
 import { authApi } from "../../client/features/auth/authApi.js";
 import { loginSchema } from "../../client/features/auth/authSchemas.js";
 import { getLoginDestination } from "../../client/auth/access.js";
 import { useAuthStore } from "../../client/store/authStore.js";
 import Button from "../../components/ui/Button.jsx";
-import Card from "../../components/ui/Card.jsx";
 import Input from "../../components/ui/Input.jsx";
+import asipbookLogo from "./assets/asipbook-logo.png";
+import styles from "./page.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,58 +63,121 @@ export default function LoginPage() {
   if (!hydrated || isAuthenticated) return null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 to-gray-100 p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-600">
-            <Package className="h-8 w-8 text-white" />
+    <main className={styles.page}>
+      <div className={styles.topRing} aria-hidden="true" />
+      <div className={styles.bottomCurve} aria-hidden="true" />
+      <div className={styles.bottomAccent} aria-hidden="true" />
+      <div className={styles.rightCurve} aria-hidden="true" />
+
+      <div className={styles.content}>
+        <section className={styles.branding} aria-labelledby="login-title">
+          <Image
+            src={asipbookLogo}
+            alt="Asipbook Business Management System"
+            className={styles.brandLogo}
+            priority
+          />
+          <div className={styles.brandText}>
+            <h1 id="login-title" className={styles.title}>
+              Asipbook <span>ERP System</span>
+            </h1>
+            <p className={styles.subtitle}>
+              Smart wholesale inventory, POS, and financial management.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Wholesale System</h1>
-          <p className="mt-1 text-sm text-gray-600">Manufacturing &amp; Distribution</p>
-        </div>
-        <Card className="p-8">
-          <h2 className="mb-1 text-xl font-semibold text-gray-900">Sign in</h2>
-          <p className="mb-6 text-sm text-gray-500">
-            Enter your credentials to access your account
-          </p>
-          <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              placeholder="admin@example.com"
-              required
-              error={errors.email?.message}
-              {...register("email")}
-            />
-            <div className="relative">
-              <Input
-                label="Password"
-                type={show ? "text" : "password"}
-                placeholder="Enter your password"
-                required
-                error={errors.password?.message}
-                {...register("password")}
-              />
-              <button
-                type="button"
-                onClick={() => setShow(!show)}
-                className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
-              >
-                {show ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+
+          <div className={styles.features} aria-label="Asipbook features">
+            <div className={styles.feature}>
+              <span className={`${styles.featureIcon} ${styles.posIcon}`}>
+                <ShoppingCart size={27} strokeWidth={2.2} aria-hidden="true" />
+              </span>
+              <span>Real-Time POS</span>
             </div>
-            <Button type="submit" fullWidth loading={mutation.isPending}>
-              {mutation.isPending ? "Signing in..." : "Sign in"}
-            </Button>
-          </form>
-          <p className="mt-6 text-center text-xs text-gray-500">
-            Forgot your password? Contact your administrator.
-          </p>
-        </Card>
-        <p className="mt-6 text-center text-xs text-gray-500">
-          © 2026 Wholesale System. All rights reserved.
-        </p>
+            <div className={styles.feature}>
+              <span className={`${styles.featureIcon} ${styles.stockIcon}`}>
+                <Package size={27} strokeWidth={2.2} aria-hidden="true" />
+              </span>
+              <span>Multi-Warehouse Stock</span>
+            </div>
+            <div className={styles.feature}>
+              <span className={`${styles.featureIcon} ${styles.financeIcon}`}>
+                <ChartNoAxesColumnIncreasing
+                  size={27}
+                  strokeWidth={2.2}
+                  aria-hidden="true"
+                />
+              </span>
+              <span>Integrated Finance</span>
+            </div>
+          </div>
+        </section>
+
+        <div className={styles.authColumn}>
+          <section className={styles.card} aria-labelledby="welcome-title">
+            <Image
+              src={asipbookLogo}
+              alt="Asipbook Business Management System"
+              className={styles.mobileLogo}
+            />
+            <div className={styles.formIntro}>
+              <h2 id="welcome-title">Welcome back</h2>
+              <p>Sign in to continue to your workspace.</p>
+            </div>
+
+            <form
+              onSubmit={handleSubmit((data) => mutation.mutate(data))}
+              className={styles.form}
+            >
+              <div className={styles.inputGroup}>
+                <Mail className={styles.inputIcon} size={19} aria-hidden="true" />
+                <Input
+                  label="Email address"
+                  type="email"
+                  placeholder="you@asipbook.com"
+                  required
+                  error={errors.email?.message}
+                  {...register("email")}
+                />
+              </div>
+
+              <div className={`${styles.inputGroup} ${styles.passwordGroup}`}>
+                <LockKeyhole className={styles.inputIcon} size={19} aria-hidden="true" />
+                <Input
+                  label="Password"
+                  type={show ? "text" : "password"}
+                  placeholder="Enter your password"
+                  required
+                  error={errors.password?.message}
+                  {...register("password")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShow(!show)}
+                  className={styles.visibilityToggle}
+                  aria-label={show ? "Hide password" : "Show password"}
+                >
+                  {show ? <EyeOff size={19} /> : <Eye size={19} />}
+                </button>
+              </div>
+
+              <Button
+                type="submit"
+                fullWidth
+                loading={mutation.isPending}
+                className={styles.submitButton}
+              >
+                {mutation.isPending ? "Signing in..." : "Sign in"}
+              </Button>
+            </form>
+
+            <p className={styles.helpText}>
+              Forgot your password? <span>Contact administrator.</span>
+            </p>
+          </section>
+
+          <footer className={styles.footer}>© 2026 Asipbook. All rights reserved.</footer>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
